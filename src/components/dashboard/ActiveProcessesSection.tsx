@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, User, Clock, Zap, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AnimatedSection } from "@/components/common/AnimatedSection";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
@@ -12,9 +12,11 @@ import { DASHBOARD_SECTION_IDS } from "@/lib/dashboardSectionIds";
 import { dashboardRouteShortcuts, processes } from "@/data/mockProcesses";
 import { PRIORITY_STYLES } from "@/lib/constants";
 import { techCoverImageForKey } from "@/lib/techCoverImages";
-import { hoverLift, motionEase, motionDuration, scaleTap } from "@/lib/animations";
+import { motionEase, motionDuration, scaleTap } from "@/lib/animations";
 import type { DashboardActiveCard, Status } from "@/types";
 import { cn } from "@/lib/cn";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+
 
 function cardCoverUrl(p: DashboardActiveCard) {
   return p.coverImage ?? techCoverImageForKey(p.id);
@@ -44,183 +46,275 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function AnimatedProgressTrack({ value }: { value: number }) {
+/** Componente de progreso futurista con brillo y animación de flujo */
+function FuturisticProgress({ value }: { value: number }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const reduced = useReducedMotion() === true;
   const inView = useInView(ref, { once: true, amount: 0.35 });
 
   return (
-    <div
-      ref={ref}
-      className="mt-auto h-[5px] overflow-hidden rounded-full bg-slate-200/80 shadow-inner"
-      role="presentation"
-      aria-hidden
-    >
-      <motion.div
-        className="h-full rounded-full bg-linear-to-r from-sky-500 via-indigo-500 to-violet-600 shadow-[0_0_14px_rgba(99,102,241,0.45)]"
-        initial={{ scaleX: 0 }}
-        animate={inView ? { scaleX: value / 100 } : { scaleX: 0 }}
-        style={{ transformOrigin: "left" }}
-        transition={{
-          duration: reduced ? 0.02 : motionDuration.lg,
-          ease: motionEase.outExpo,
-        }}
-      />
+    <div className="mt-auto space-y-2" ref={ref}>
+      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <span>Progreso del pipeline</span>
+        <span className="text-indigo-500">{value}%</span>
+      </div>
+      <div
+        className="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-200/50 shadow-inner"
+        role="presentation"
+        aria-hidden
+      >
+        <motion.div
+          className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-cyan-500 via-indigo-500 to-purple-600 shadow-[0_0_12px_rgba(79,70,229,0.4)]"
+          initial={{ width: 0 }}
+          animate={inView ? { width: `${value}%` } : { width: 0 }}
+          transition={{
+            duration: reduced ? 0.02 : 1.5,
+            ease: motionEase.outExpo,
+          }}
+        >
+          {/* Efecto de brillo que recorre la barra */}
+          <motion.div
+            className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
+            animate={{ x: ["-100%", "100%"] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 }
-
-function DetailProgress({ value }: { value: number }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const reduced = useReducedMotion() === true;
-  const inView = useInView(ref, { once: true, amount: 0.4 });
-
-  return (
-    <div ref={ref} className="h-2 max-w-md overflow-hidden rounded-full bg-slate-200/90 shadow-inner" aria-hidden>
-      <motion.div
-        className="h-full rounded-full bg-linear-to-r from-sky-500 via-indigo-500 to-violet-600 shadow-[0_0_16px_rgba(99,102,241,0.4)]"
-        initial={{ scaleX: 0 }}
-        animate={inView ? { scaleX: value / 100 } : { scaleX: 0 }}
-        style={{ transformOrigin: "left" }}
-        transition={{ duration: reduced ? 0.02 : motionDuration.lg, ease: motionEase.outExpo }}
-      />
-    </div>
-  );
-}
-
-const cardShell =
-  "group relative flex w-full flex-col overflow-hidden rounded-[1.25rem] border text-left outline-none transition-colors duration-300 ease-out";
-
-const cardShellIdle =
-  "border-slate-200/70 bg-white shadow-[0_4px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/90";
-
-const cardShellSelected =
-  "border-indigo-300/80 bg-white shadow-[0_12px_40px_-16px_rgba(79,70,229,0.28)] ring-2 ring-indigo-500/35 ring-offset-2 ring-offset-[#f4f7fc]";
 
 export function ActiveProcessesSection() {
   const reducedMotion = useReducedMotion() === true;
   const panelItems = useMemo((): DashboardActiveCard[] => {
-    const active = processes
-      .filter((p) => p.status !== "Completed")
-      .map((p) => ({ ...p, href: `/review/${p.id}` }));
-    return [...dashboardRouteShortcuts, ...active];
+    // Solo mostramos los atajos de rutas que son las tarjetas operativas principales
+    return dashboardRouteShortcuts;
   }, []);
 
   return (
-    <AnimatedSection id={DASHBOARD_SECTION_IDS.processes} className="relative border-b border-slate-200/60 bg-[#f4f7fc] py-16 sm:py-20 lg:py-24" reveal={false}>
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,rgba(99,102,241,0.09),transparent_55%)]"
-        aria-hidden
-      />
+    <AnimatedSection
+      id={DASHBOARD_SECTION_IDS.processes}
+      className="relative overflow-hidden border-b border-slate-200/60 bg-[#f8fafc] py-16 sm:py-20 lg:py-24"
+      reveal={false}
+    >
+      {/* Fondo Tecnológico Animado e Impactante */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Orbes de luz animados */}
+        <motion.div 
+          animate={{ 
+            x: [0, 100, 0], 
+            y: [0, 50, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[10%] left-[10%] h-[600px] w-[600px] rounded-full bg-indigo-500/10 blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -80, 0], 
+            y: [0, 100, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-[10%] right-[10%] h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[100px]" 
+        />
+
+        {/* Cuadrícula técnica con pulsos de luz */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `linear-gradient(rgba(79,70,229,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(79,70,229,0.2) 1px, transparent 1px)`,
+          backgroundSize: "4rem 4rem"
+        }} />
+        
+        {/* Pulso de luz horizontal */}
+        <motion.div 
+          animate={{ top: ["-10%", "110%"] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-x-0 h-[200px] bg-linear-to-b from-transparent via-indigo-500/5 to-transparent opacity-50"
+        />
+
+        {/* Partículas flotantes */}
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute h-1 w-1 rounded-full bg-indigo-400/20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -100, 0],
+              opacity: [0, 0.5, 0],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: 10 + Math.random() * 10,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+            }}
+          />
+        ))}
+
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+      </div>
+
       <div className="relative mx-auto max-w-[min(1280px,calc(100%-2rem))] px-4 sm:px-6">
         <RevealOnScroll viewportAmount={0.2} className="will-change-transform">
-          <SectionTitle
-            size="editorial"
-            title="Procesos activos"
-            subtitle="Selecciona una ficha para ver el detalle y abrir la vista completa en la plataforma."
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <SectionTitle
+              size="editorial"
+              title="Procesos activos"
+              subtitle="Ecosistema de gestión en tiempo real. Selecciona una unidad para interactuar con su flujo de trabajo."
+            />
+            <div className="mb-4 flex items-center gap-2 rounded-full border border-indigo-100 bg-white/50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-indigo-600 backdrop-blur-md shadow-sm sm:mb-1">
+              <Zap className="h-3.5 w-3.5 fill-indigo-600" />
+              Live System
+            </div>
+          </div>
         </RevealOnScroll>
 
         {panelItems.length === 0 ? (
-          <p className="mt-8 text-sm text-slate-600">No hay procesos en esta vista.</p>
+          <p className="mt-8 text-sm text-slate-600">No hay procesos activos en el sistema.</p>
         ) : (
-          <div className="mt-10">
+          <div className="mt-12">
             <SelectableCardPanel
               items={panelItems}
               getItemId={(p) => p.id}
-              gridClassName="gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-7"
+              gridClassName="gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8"
               renderCard={({ item: p, index, selected, onSelect, detailPanelId }) => {
                 const prio = PRIORITY_STYLES[p.priority] ?? "bg-slate-100 text-slate-700";
                 const cover = cardCoverUrl(p);
-                const isShortcut = p.id.startsWith("route-");
                 const progress = pipelineProgress(p.status);
-                const hoverNav = {
-                  ...hoverLift,
-                  boxShadow: "0 22px 50px -18px rgba(37, 99, 235, 0.22)",
-                  transition: { type: "spring" as const, stiffness: 400, damping: 28 },
-                };
-                const hoverProcess = {
-                  x: 5,
-                  y: -3,
-                  boxShadow: "0 24px 52px -20px rgba(79, 70, 229, 0.2)",
-                  transition: { type: "spring" as const, stiffness: 380, damping: 28 },
-                };
 
                 return (
                   <motion.div
-                    className="min-w-0"
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.12 }}
-                    transition={{
-                      duration: reducedMotion ? 0.01 : motionDuration.md,
-                      delay: reducedMotion ? 0 : index * 0.05,
-                      ease: motionEase.out,
+                    className="group relative"
+                    initial="hidden"
+                    whileInView="visible"
+                    whileHover="hover"
+                    viewport={{ once: true, amount: 0.1 }}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0,
+                        transition: {
+                          duration: reducedMotion ? 0.01 : 0.6,
+                          delay: reducedMotion ? 0 : index * 0.05,
+                          ease: motionEase.out,
+                        }
+                      }
                     }}
                   >
-                    <motion.div
+                    {/* Borde animado en hover */}
+                    <div className="absolute -inset-[1px] rounded-[2rem] bg-linear-to-r from-cyan-400 via-indigo-500 to-purple-600 opacity-0 blur-[2px] transition-opacity duration-500 group-hover:opacity-100" />
+
+                    <Link
+                      to={p.href}
+                      onClick={onSelect}
+                      aria-controls={detailPanelId}
                       className={cn(
-                        cardShell,
-                        selected ? cardShellSelected : cardShellIdle,
-                        !selected && "shadow-[0_4px_24px_-12px_rgba(15,23,42,0.12)]",
+                        "relative flex h-full flex-col overflow-hidden rounded-[2rem] border transition-all duration-500 ease-out",
+                        selected
+                          ? "border-transparent bg-white shadow-2xl ring-2 ring-indigo-500/20"
+                          : "border-white/60 bg-white/70 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]",
                       )}
-                      whileHover={!selected ? (isShortcut ? hoverNav : hoverProcess) : undefined}
-                      whileTap={scaleTap}
                     >
-                      <Link
-                        to={p.href}
-                        onClick={onSelect}
-                        aria-controls={detailPanelId}
-                        aria-label={`Abrir vista: ${p.subject}`}
-                        className="flex min-h-0 flex-1 flex-col text-left text-inherit no-underline outline-none"
-                      >
-                        <div className="relative aspect-16/10 w-full shrink-0 overflow-hidden sm:aspect-5/3">
-                          <img
-                            src={cover}
-                            alt=""
-                            className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
-                          />
-                          <div
-                            className="absolute inset-0 bg-linear-to-t from-slate-950/92 via-slate-950/40 to-slate-950/5"
-                            aria-hidden
-                          />
-                          <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2 sm:inset-x-4 sm:top-3.5">
-                            <span className="rounded-lg border border-white/25 bg-white/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-white/95 shadow-sm backdrop-blur-md">
-                              {p.code}
-                            </span>
+                      {/* Detalles decorativos en esquinas */}
+                      <div className="absolute right-6 top-6 z-20 flex gap-1 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                        <div className="h-1 w-4 rounded-full bg-indigo-500/30" />
+                        <div className="h-1 w-1 rounded-full bg-indigo-500/30" />
+                      </div>
+
+                      <div className="relative aspect-16/9 overflow-hidden">
+                        <img
+                          src={cover}
+                          alt=""
+                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        />
+                        {/* Overlay futurista con patrón de escaneo */}
+                        <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+                        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
+
+                        {/* Efecto de línea de escaneo al pasar el mouse */}
+                        <motion.div
+                          className="absolute inset-x-0 h-[1px] bg-cyan-400/50 shadow-[0_0_10px_rgba(34,211,238,0.8)]"
+                          initial={{ top: "-10%" }}
+                          whileHover={{ top: ["0%", "100%"] }}
+                          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                        />
+
+                        <div className="absolute inset-x-4 top-4 flex justify-between items-start">
+                          <span className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/30 px-2.5 py-1 font-mono text-[10px] font-bold tracking-widest text-white shadow-lg backdrop-blur-md">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
+                            {p.code}
+                          </span>
+                        </div>
+
+                        <div className="absolute inset-x-5 bottom-4">
+                          <h3 className="text-lg font-bold tracking-tight text-white drop-shadow-lg sm:text-xl">
+                            {p.subject}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-1 flex-col p-6 pt-5">
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                          <StatusPill status={p.status} />
+                          <Badge
+                            className={cn(
+                              "border-0 bg-slate-100/80 px-3 text-[10px] uppercase tracking-widest text-slate-600 ring-1 ring-inset ring-slate-200/50",
+                              prio,
+                            )}
+                          >
+                            {p.priority}
+                          </Badge>
+                        </div>
+
+                        {/* Nueva Sección: Fusión de Detalles e Inteligencia */}
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-4 flex items-center gap-3">
+                              <div className="relative">
+                                <div className="grid h-10 w-10 place-items-center rounded-2xl bg-linear-to-br from-indigo-50 to-slate-50 text-[11px] font-bold text-indigo-600 shadow-sm ring-1 ring-indigo-100">
+                                  {initials(p.owner)}
+                                </div>
+                                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="block text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                                  Lead Responsibility
+                                </span>
+                                <p className="truncate text-sm font-bold text-slate-800">{p.owner}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+                              <Clock className="h-3 w-3" />
+                              <span className="truncate">{p.timeLabel ?? p.updatedAt}</span>
+                            </div>
                           </div>
-                          <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-3.5">
-                            <p className="text-[15px] font-semibold leading-snug tracking-tight text-white drop-shadow-md sm:text-base">
-                              {p.subject}
-                            </p>
+
+                          {/* Inteligencia del Sistema: Ubicación dedicada y grande */}
+                          <div className="relative flex flex-col items-center justify-center border-l border-slate-100 pl-4">
+                            <div className="relative h-20 w-20">
+                              {/* Glow de fondo para que resalte */}
+                              <div className="absolute inset-0 bg-indigo-500/10 blur-[20px] rounded-full animate-pulse" />
+                              <DotLottieReact
+                                src="/videos/brain.lottie"
+                                loop
+                                autoplay
+                                className="h-full w-full"
+                              />
+                            </div>
+                            <span className="mt-1 text-[8px] font-black uppercase tracking-[0.15em] text-indigo-500/80 text-center">
+                              AI_AUDIT
+                            </span>
                           </div>
                         </div>
 
-                        <div className="flex flex-1 flex-col gap-3.5 bg-linear-to-b from-white to-slate-50/95 p-4 pb-3.5 sm:p-4 sm:pb-4">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <StatusPill status={p.status} />
-                            <span
-                              className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-tight", prio)}
-                            >
-                              {p.priority}
-                            </span>
-                            <span className="text-[11px] font-medium text-slate-500">{p.timeLabel ?? p.updatedAt}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200/90 bg-white text-[11px] font-bold tracking-tight text-slate-700 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.12)] ring-2 ring-white">
-                              {initials(p.owner)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                Responsable
-                              </p>
-                              <p className="truncate text-sm font-semibold text-slate-800">{p.owner}</p>
-                            </div>
-                          </div>
-                          <AnimatedProgressTrack value={progress} />
-                        </div>
-                      </Link>
-                    </motion.div>
+                        <FuturisticProgress value={progress} />
+                      </div>
+                    </Link>
                   </motion.div>
                 );
               }}
@@ -230,65 +324,95 @@ export function ActiveProcessesSection() {
                 const progress = pipelineProgress(p.status);
                 const cover = cardCoverUrl(p);
                 return (
-                  <Link
-                    to={p.href}
-                    className="group relative block overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_24px_64px_-28px_rgba(15,23,42,0.22)] outline-none transition-colors duration-300 hover:border-indigo-200/80 focus-visible:ring-2 focus-visible:ring-indigo-500/30"
-                  >
-                    <motion.div
-                      className="relative"
-                      initial={false}
-                      whileHover={{ y: -3 }}
-                      whileTap={scaleTap}
-                      transition={{ type: "spring", stiffness: 360, damping: 28 }}
-                    >
-                      <div className="relative h-[min(280px,42vw)] w-full min-h-[200px] sm:h-56 md:h-64">
-                        <img
-                          src={cover}
-                          alt=""
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                        />
-                        <div
-                          className="absolute inset-0 bg-linear-to-t from-slate-950/95 via-slate-950/45 to-slate-950/10"
-                          aria-hidden
-                        />
-                        <div className="absolute inset-x-5 bottom-5 sm:inset-x-6 sm:bottom-6">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge className="border border-white/25 bg-white/12 font-mono text-[11px] font-semibold text-white shadow-sm backdrop-blur-md">
-                              {p.code}
+                  <div className="group relative mt-4 overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/40 p-1 shadow-2xl backdrop-blur-2xl">
+                    {/* Borde gradiente sutil para el panel de detalle */}
+                    <div className="absolute inset-0 bg-linear-to-br from-indigo-500/10 via-transparent to-cyan-500/10 opacity-50" />
+
+                    <div className="relative overflow-hidden rounded-[2.25rem] bg-white shadow-sm">
+                      <div className="flex flex-col lg:flex-row">
+                        <div className="relative h-64 w-full shrink-0 overflow-hidden lg:h-auto lg:w-2/5">
+                          <img src={cover} alt="" className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 bg-linear-to-r from-slate-950/80 via-slate-950/20 to-transparent" />
+                          <div className="absolute inset-y-0 left-0 w-1 bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)]" />
+
+                          <div className="absolute inset-x-8 bottom-8">
+                            <Badge className="mb-4 border-white/20 bg-white/10 font-mono text-[12px] font-bold tracking-widest text-white backdrop-blur-md">
+                              SYSTEM ID: {p.code}
                             </Badge>
-                            <StatusPill status={p.status} />
+                            <h3 className="text-3xl font-extrabold tracking-tight text-white drop-shadow-2xl lg:text-4xl">
+                              {p.subject}
+                            </h3>
                           </div>
-                          <h3 className="mt-3 max-w-2xl text-2xl font-semibold leading-tight tracking-tight text-white drop-shadow-md sm:text-3xl">
-                            {p.subject}
-                          </h3>
                         </div>
-                      </div>
-                      <div className="grid gap-5 border-t border-slate-100/90 bg-linear-to-b from-white to-slate-50/90 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:p-7">
-                        <div className="space-y-3 text-sm text-slate-600">
-                          <p>
-                            <span className="text-slate-500">Responsable</span>{" "}
-                            <span className="font-semibold text-slate-900">{p.owner}</span>
-                          </p>
-                          <p className="flex flex-wrap items-center gap-2">
-                            <span className="text-slate-500">Prioridad</span>
-                            <span
-                              className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold", prio)}
+
+                        <div className="flex flex-1 flex-col p-8 sm:p-10">
+                          <div className="mb-8 flex flex-wrap items-center gap-4">
+                            <StatusPill status={p.status} />
+                            <Badge
+                              className={cn(
+                                "rounded-xl border-0 bg-slate-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest",
+                                prio,
+                              )}
                             >
                               {p.priority}
-                            </span>
-                            <span className="text-slate-400">·</span>
-                            <span className="text-slate-500">Actualizado</span>{" "}
-                            <span className="font-medium text-slate-800">{p.timeLabel ?? p.updatedAt}</span>
-                          </p>
-                          <DetailProgress value={progress} />
+                            </Badge>
+                            <div className="flex items-center gap-3 text-sm font-semibold text-slate-400">
+                              <div className="h-8 w-8 rounded-lg bg-indigo-50 p-0.5">
+                                <DotLottieReact
+                                  src="/videos/brain.lottie"
+                                  loop
+                                  autoplay
+                                  className="h-full w-full"
+                                />
+                              </div>
+                              Active Workflow Analysis
+                            </div>
+                          </div>
+
+                          <div className="mb-10 grid gap-8 sm:grid-cols-2">
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-inner">
+                                <User className="h-6 w-6" />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                  Propiedad de
+                                </span>
+                                <p className="text-lg font-bold text-slate-900">{p.owner}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600 shadow-inner">
+                                <Clock className="h-6 w-6" />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                  Último registro
+                                </span>
+                                <p className="text-lg font-bold text-slate-900">{p.timeLabel ?? p.updatedAt}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-auto flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+                            <div className="flex-1 max-w-md">
+                              <FuturisticProgress value={progress} />
+                            </div>
+                            <Link
+                              to={p.href}
+                              className="group/btn relative flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-slate-900 px-10 py-4 text-sm font-bold text-white transition-all hover:bg-indigo-600 hover:shadow-2xl active:scale-95"
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                Acceder al workspace
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                              </span>
+                              <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover/btn:translate-x-full" />
+                            </Link>
+                          </div>
                         </div>
-                        <span className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition group-hover:bg-indigo-950 sm:justify-self-end">
-                          Abrir ficha
-                          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
-                        </span>
                       </div>
-                    </motion.div>
-                  </Link>
+                    </div>
+                  </div>
                 );
               }}
             />
@@ -298,3 +422,4 @@ export function ActiveProcessesSection() {
     </AnimatedSection>
   );
 }
+

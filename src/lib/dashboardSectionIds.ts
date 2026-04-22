@@ -11,6 +11,9 @@ export type DashboardSectionId = (typeof DASHBOARD_SECTION_IDS)[keyof typeof DAS
 export const DASHBOARD_SCROLL_TAB_IDS = {
   inicio: "inicio",
   procesos: "procesos",
+  analitica: "analitica",
+  archivos: "archivos",
+  auditoria: "auditoria",
 } as const;
 
 export type DashboardScrollTabId = (typeof DASHBOARD_SCROLL_TAB_IDS)[keyof typeof DASHBOARD_SCROLL_TAB_IDS];
@@ -26,6 +29,21 @@ export const DASHBOARD_NAV_SCROLL_TABS = [
     id: DASHBOARD_SCROLL_TAB_IDS.procesos,
     label: "Procesos",
     sectionId: DASHBOARD_SECTION_IDS.processes,
+  },
+  {
+    id: DASHBOARD_SCROLL_TAB_IDS.analitica,
+    label: "Analítica",
+    path: "/activity",
+  },
+  {
+    id: DASHBOARD_SCROLL_TAB_IDS.archivos,
+    label: "Archivos",
+    path: "/history",
+  },
+  {
+    id: DASHBOARD_SCROLL_TAB_IDS.auditoria,
+    label: "Auditoría",
+    path: "/review",
   },
 ] as const;
 

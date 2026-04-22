@@ -1,49 +1,77 @@
-﻿import { motion, useReducedMotion } from "framer-motion";
-import { Calendar, ChevronRight, UserRound } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Calendar, ChevronRight, UserRound, LayoutPanelLeft, Sparkles, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
 import { MainContentContainer } from "@/components/layout/MainContentContainer";
-import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/shared/StatusPill";
-import { motionDuration, motionEase } from "@/lib/animations";
+import { motionEase } from "@/lib/animations";
 import { PIPELINE_COLUMN_ACCENT, PRIORITY_STYLES } from "@/lib/constants";
 import { processes } from "@/data/mockProcesses";
 import type { Status } from "@/types";
+import { cn } from "@/lib/cn";
 
 const columns: Status[] = ["Submitted", "In Review", "Requires Finalization", "Completed"];
 
+/** Tarjeta de Pipeline con diseño de módulo técnico ligero */
 function PipelineCard({ item }: { item: (typeof processes)[0] }) {
   const prio = PRIORITY_STYLES[item.priority] ?? "bg-slate-100 text-slate-700";
 
   return (
-    <Card className="rounded-2xl p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-semibold leading-snug text-slate-900">{item.subject}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-slate-500">{item.code}</p>
+    <motion.div
+      whileHover={{ y: -4 }}
+      className="group relative"
+    >
+      {/* Resplandor de fondo suave en hover */}
+      <div className="absolute -inset-2 rounded-[1.5rem] bg-blue-500/5 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+      
+      <div className={cn(
+        "relative flex flex-col overflow-hidden rounded-[1.5rem] border bg-white/80 p-5 transition-all duration-300 backdrop-blur-xl",
+        "border-white shadow-[0_4px_15px_-5px_rgba(0,0,0,0.03)]",
+        "group-hover:border-blue-400/40 group-hover:shadow-[0_15px_35px_-10px_rgba(37,99,235,0.08)] group-hover:bg-white/95"
+      )}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[14.5px] font-bold tracking-tight text-slate-800 line-clamp-2 transition-colors group-hover:text-blue-600">
+              {item.subject}
+            </p>
+            <div className="mt-1.5 flex items-center gap-2">
+              <span className="font-mono text-[9px] font-black uppercase tracking-widest text-slate-400/80">UNIT::{item.code}</span>
+              <div className="h-1 w-1 rounded-full bg-blue-100" />
+            </div>
+          </div>
+          <StatusPill status={item.status} />
         </div>
-        <StatusPill status={item.status} />
+
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          <span className={cn("rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ring-1 ring-inset shadow-xs", prio)}>
+            {item.priority}
+          </span >
+          <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-slate-400/90">
+            <UserRound className="h-3 w-3" />
+            <span className="truncate max-w-[80px]">{item.owner}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-slate-400/90">
+            <Calendar className="h-3 w-3" />
+            <span>{item.timeLabel ?? item.updatedAt}</span>
+          </div>
+        </div>
+
+        <Link
+          to={`/review/${item.id}`}
+          className="group/btn mt-5 flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-2.5 text-[11px] font-bold text-blue-700 transition-all hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
+        >
+          <span className="flex items-center gap-2">
+            Gestionar Proceso
+            <Sparkles className="h-3 w-3 transition-transform group-hover/btn:rotate-12" />
+          </span>
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+        </Link>
+
+        {/* Borde brillante animado sutil en hover */}
+        <div className="absolute inset-0 rounded-[1.5rem] border-2 border-blue-400/0 transition-colors group-hover:border-blue-400/10 pointer-events-none" />
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${prio}`}>{item.priority}</span>
-        <span className="flex items-center gap-1 text-[11px] text-slate-500">
-          <UserRound className="h-3 w-3" aria-hidden />
-          {item.owner}
-        </span>
-        <span className="flex items-center gap-1 text-[11px] text-slate-500">
-          <Calendar className="h-3 w-3" aria-hidden />
-          {item.timeLabel ?? item.updatedAt}
-        </span>
-      </div>
-      <Link
-        to={`/review/${item.id}`}
-        className="mt-4 flex items-center justify-between rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-700 transition-[border-color,background-color,color,transform] duration-200 hover:border-blue-200 hover:bg-white hover:text-blue-700 active:scale-[0.99]"
-      >
-        Ver detalle
-        <ChevronRight className="h-4 w-4" aria-hidden />
-      </Link>
-    </Card>
+    </motion.div>
   );
 }
 
@@ -51,55 +79,82 @@ export function PipelinePage() {
   const reducedMotion = useReducedMotion() === true;
 
   return (
-    <MainContentContainer className="space-y-8">
+    <MainContentContainer className="relative space-y-10 py-8 lg:py-12">
+      {/* Fondo decorativo sutil */}
+      <div className="absolute inset-x-0 top-0 -z-10 h-[600px] bg-radial-gradient(ellipse_at_center,rgba(59,130,246,0.05),transparent_70%)" aria-hidden />
+
       <RevealOnScroll viewportAmount={0.35}>
-        <PageHeader
-          title="Pipeline"
-          description="Tablero por etapa con densidad operativa y contexto por tarjeta."
-        />
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <PageHeader
+            title="Pipeline de Operación"
+            description="Control de flujo en tiempo real con trazabilidad por nodo."
+          />
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-blue-100 bg-white/50 px-4 py-2 shadow-sm backdrop-blur-md md:mb-0">
+            <ShieldCheck className="h-4 w-4 text-blue-600" />
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">Sistema Seguro v1.2</span>
+          </div>
+        </div>
       </RevealOnScroll>
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {columns.map((column, colIndex) => {
           const items = processes.filter((p) => p.status === column);
-          const accent = PIPELINE_COLUMN_ACCENT[column] ?? "from-slate-400 to-slate-300";
+          const accentClass = PIPELINE_COLUMN_ACCENT[column] ?? "from-slate-400 to-slate-300";
 
           return (
             <motion.div
               key={column}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: 0.1 }}
               transition={{
-                delay: reducedMotion ? 0 : colIndex * 0.06,
-                duration: reducedMotion ? 0.01 : motionDuration.md,
+                delay: reducedMotion ? 0 : colIndex * 0.1,
+                duration: 0.6,
                 ease: motionEase.out,
               }}
-              className="flex flex-col rounded-[28px] border border-slate-200/40 bg-linear-to-b from-slate-100/40 to-white/50 p-4 shadow-inner"
+              className="flex flex-col rounded-[2.5rem] border border-slate-200/50 bg-slate-50/40 p-5 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] backdrop-blur-3xl lg:p-6"
             >
-              <div className={`h-1 rounded-full bg-linear-to-r ${accent}`} />
-              <div className="mt-4 flex items-start justify-between gap-2">
-                <h2 className="text-sm font-semibold tracking-tight text-slate-900">{column}</h2>
-                <span className="rounded-full bg-white/80 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-600 shadow-sm">
-                  {items.length}
-                </span>
+              {/* Encabezado de columna futurista */}
+              <div className="mb-6 flex flex-col gap-4">
+                <div className={cn("h-1.5 w-full rounded-full bg-linear-to-r shadow-sm", accentClass)} />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-white shadow-lg bg-linear-to-br", accentClass)} />
+                    <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-slate-900">{column}</h2>
+                  </div>
+                  <span className="rounded-xl border border-white bg-white/60 px-2.5 py-1 font-mono text-[11px] font-bold text-slate-600 shadow-sm backdrop-blur-md">
+                    {items.length}
+                  </span>
+                </div>
               </div>
-              <div className="mt-4 flex flex-1 flex-col gap-3">
-                {items.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.15 }}
-                    transition={{
-                      delay: reducedMotion ? 0 : colIndex * 0.05 + i * 0.04,
-                      duration: reducedMotion ? 0.01 : motionDuration.sm,
-                      ease: motionEase.out,
-                    }}
-                  >
-                    <PipelineCard item={p} />
-                  </motion.div>
-                ))}
+
+              <div className="flex flex-1 flex-col gap-4">
+                {items.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                    <LayoutPanelLeft className="mb-2 h-10 w-10 text-slate-400" strokeWidth={1} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Sin procesos</span>
+                  </div>
+                ) : (
+                  items.map((p, i) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true, amount: 0.1 }}
+                      transition={{
+                        delay: reducedMotion ? 0 : colIndex * 0.05 + i * 0.05,
+                        duration: 0.4,
+                      }}
+                    >
+                      <PipelineCard item={p} />
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              
+              {/* Detalle decorativo al final de la columna */}
+              <div className="mt-6 flex justify-center opacity-10">
+                <div className="h-px w-1/2 bg-linear-to-r from-transparent via-slate-900 to-transparent" />
               </div>
             </motion.div>
           );

@@ -1,6 +1,6 @@
-﻿import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Filter, Search, ListFilter, Activity } from "lucide-react";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
 import { MainContentContainer } from "@/components/layout/MainContentContainer";
 import { FilterBar } from "@/components/shared/FilterBar";
@@ -8,6 +8,8 @@ import { StatusPill } from "@/components/shared/StatusPill";
 import { motionDuration, motionEase } from "@/lib/animations";
 import { PRIORITY_STYLES } from "@/lib/constants";
 import { reviewQueue } from "@/data/reviewQueue";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { cn } from "@/lib/cn";
 
 export function ReviewPage() {
   const pending = reviewQueue.length;
@@ -16,17 +18,63 @@ export function ReviewPage() {
   return (
     <MainContentContainer className="space-y-6">
       <RevealOnScroll viewportAmount={0.25} className="will-change-transform">
-        <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200/50 bg-white/80 p-6 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-8">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-[2rem]">Cola de revisión</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-              Vista operativa densa: materia, ownership y estado en una sola pasada visual.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="rounded-full border border-violet-200/60 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-900">
-              {pending} pendientes
-            </span>
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl">
+          {/* Fondo decorativo interno */}
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-50/50 blur-3xl" />
+          
+          <div className="relative flex flex-col lg:flex-row lg:items-center">
+            <div className="flex-1 p-8 lg:p-12">
+              <div className="mb-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 shadow-xl shadow-slate-900/20">
+                  <Activity className="h-6 w-6 text-blue-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Live Operative Hub</span>
+                  </div>
+                  <h1 className="text-4xl font-black tracking-tight text-slate-900">
+                    Cola de <span className="text-blue-600">revisión</span>
+                  </h1>
+                </div>
+              </div>
+              
+              <p className="max-w-xl text-base font-medium leading-relaxed text-slate-500">
+                Monitoreo activo de activos técnicos. Cada entrada es auditada en tiempo real para asegurar la integridad del ecosistema.
+              </p>
+
+              <div className="mt-8 flex items-center gap-4">
+                <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-2 border border-slate-100 shadow-sm">
+                  <span className="text-sm font-black text-slate-900">{pending} PENDIENTES</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Drone: Integrated as a "Live Monitor" Badge */}
+            <div className="p-8 lg:p-12 lg:pl-0 flex items-center justify-center">
+              <div className="group relative h-40 w-40 overflow-hidden rounded-[2rem] bg-linear-to-br from-slate-50 to-slate-100/50 p-4 ring-1 ring-slate-200/60 shadow-inner">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                  <div className="h-24 w-24">
+                    <DotLottieReact
+                      src="/videos/Drone.lottie"
+                      loop
+                      autoplay
+                      className="h-full w-full"
+                    />
+                  </div>
+                  <span className="mt-1 text-[8px] font-black uppercase tracking-[0.2em] text-blue-600">
+                    Scanning_Active
+                  </span>
+                </div>
+                {/* Rayo de escaneo decorativo */}
+                <motion.div 
+                  className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-400/50 to-transparent"
+                  animate={{ top: ["0%", "100%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </RevealOnScroll>
@@ -35,55 +83,78 @@ export function ReviewPage() {
         <FilterBar />
       </RevealOnScroll>
 
-      <RevealOnScroll viewportAmount={0.12} className="overflow-hidden rounded-[28px] border border-slate-200/50 bg-white/90 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.12)]">
+      <RevealOnScroll viewportAmount={0.12} className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 bg-white shadow-2xl shadow-slate-200/50">
         <div className="overflow-x-auto">
-          <table className="min-w-[880px] w-full border-collapse text-left text-sm">
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="px-5 py-4">Materia</th>
-                <th className="px-4 py-4">Código</th>
-                <th className="px-4 py-4">Estado</th>
-                <th className="px-4 py-4">Prioridad</th>
-                <th className="px-4 py-4">Owner</th>
-                <th className="px-4 py-4">Actualizado</th>
-                <th className="px-5 py-4 text-right">Acción</th>
+              <tr className="border-b border-slate-100 bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <th className="px-8 py-6">Materia & Contexto</th>
+                <th className="px-4 py-6">Identificador</th>
+                <th className="px-4 py-6">Status</th>
+                <th className="px-4 py-6">Prioridad</th>
+                <th className="px-4 py-6">Responsable</th>
+                <th className="px-4 py-6">Timeline</th>
+                <th className="px-8 py-6 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50">
               {reviewQueue.map((p, i) => {
                 const prio = PRIORITY_STYLES[p.priority] ?? "bg-slate-100 text-slate-700";
                 return (
                   <motion.tr
                     key={p.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true, amount: 0.12 }}
                     transition={{
-                      delay: reducedMotion ? 0 : i * 0.04,
-                      duration: reducedMotion ? 0.01 : motionDuration.sm,
-                      ease: motionEase.out,
+                      delay: reducedMotion ? 0 : i * 0.05,
+                      duration: 0.5,
+                      ease: "easeOut",
                     }}
-                    className="border-b border-slate-100/90 transition-colors duration-200 hover:bg-slate-50/80"
+                    className="group relative transition-all hover:bg-blue-50/30"
                   >
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-900">{p.subject}</p>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100 transition-transform group-hover:scale-110">
+                          <ListFilter className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <p className="font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">{p.subject}</p>
+                      </div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs text-slate-600">{p.code}</td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-5">
+                      <span className="font-mono text-[11px] font-bold text-slate-400 bg-slate-100/50 px-2 py-1 rounded-md">
+                        {p.code}
+                      </span>
+                    </td>
+                    <td className="px-4 py-5">
                       <StatusPill status={p.status} />
                     </td>
-                    <td className="px-4 py-4">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${prio}`}>{p.priority}</span>
+                    <td className="px-4 py-5">
+                      <span className={cn(
+                        "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest",
+                        prio
+                      )}>
+                        {p.priority}
+                      </span>
                     </td>
-                    <td className="px-4 py-4 text-slate-700">{p.owner}</td>
-                    <td className="px-4 py-4 text-xs text-slate-500">{p.timeLabel ?? p.updatedAt}</td>
-                    <td className="px-5 py-4 text-right">
+                    <td className="px-4 py-5">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-linear-to-br from-slate-100 to-slate-200 border border-white flex items-center justify-center text-[10px] font-bold text-slate-600">
+                          {p.owner.split(" ").map(n => n[0]).join("")}
+                        </div>
+                        <span className="font-bold text-slate-700">{p.owner}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 text-xs font-bold text-slate-400">
+                      {p.timeLabel ?? p.updatedAt}
+                    </td>
+                    <td className="px-8 py-5 text-right">
                       <Link
                         to={`/review/${p.id}`}
-                        className="inline-flex items-center gap-1 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-blue-600/25 ring-1 ring-blue-500/15 transition-[transform,box-shadow,opacity] duration-200 hover:shadow-lg hover:shadow-blue-600/30 active:scale-[0.98]"
+                        className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-xs font-black uppercase tracking-widest text-slate-900 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-900 hover:text-white hover:ring-slate-900 active:scale-95"
                       >
-                        Abrir
-                        <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                        Gestionar
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
                     </td>
                   </motion.tr>
