@@ -1,0 +1,31 @@
+﻿@import "tailwindcss";
+
+:root {
+  --canvas: #f1f5f9;
+  --surface: #ffffff;
+  --text: #0c1222;
+  --muted: #5c6b82;
+  --accent-blue: #2563eb;
+  --accent-violet: #7c3aed;
+  --accent-amber: #d97706;
+  --accent-emerald: #059669;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  background-color: var(--canvas);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100%;
+  min-height: 100dvh;
+}
