@@ -9,6 +9,9 @@
   --accent-violet: #7c3aed;
   --accent-amber: #d97706;
   --accent-emerald: #059669;
+  --auth-grid: rgba(107, 114, 128, 0.13);
+  --auth-glow-blue: rgba(37, 99, 235, 0.18);
+  --auth-glow-violet: rgba(124, 58, 237, 0.12);
 }
 
 html {
@@ -43,4 +46,12 @@ body::before {
 #app {
   min-height: 100%;
   min-height: 100dvh;
+}
+
+.auth-grid {
+  background-image:
+    linear-gradient(to right, var(--auth-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--auth-grid) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
 }

@@ -131,14 +131,14 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
   const staggerParent = reducedStaggerContainer(reducedMotion);
 
   return (
-    <div className="w-full min-h-dvh shrink-0 bg-[#020617]">
+    <div className="w-full min-h-dvh shrink-0 bg-[#f8fafc]">
       <motion.section
         id={DASHBOARD_SECTION_IDS.hero}
         ref={setMergedRef}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: motionDuration.xl, ease: motionEase.outExpo }}
-        className="relative flex h-dvh min-h-0 w-full shrink-0 flex-col overflow-hidden bg-[#020617] text-white"
+        className="relative flex h-dvh min-h-0 w-full shrink-0 flex-col overflow-hidden bg-white text-slate-900"
       >
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div
@@ -148,7 +148,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
           >
             <video
               ref={videoRef}
-              className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.7] contrast-[1.1]"
+              className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.86] contrast-[1.08] saturate-[1.04] opacity-72"
               autoPlay
               muted
               loop
@@ -169,8 +169,11 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
           }}
           aria-hidden
         />
-        <div className="pointer-events-none absolute inset-0 z-1 bg-[#020617]/75 backdrop-blur-[2px]" aria-hidden />
-        <div className="pointer-events-none absolute inset-0 z-1 bg-linear-to-t from-[#020617] via-transparent to-[#020617]/40" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 z-1 bg-white/18 backdrop-blur-[0.5px]" aria-hidden />
+        <div
+          className="pointer-events-none absolute inset-0 z-1 bg-linear-to-t from-[#f8fafc]/78 via-transparent to-white/12"
+          aria-hidden
+        />
 
         <div className="relative z-10 mx-auto flex w-full max-w-[min(1280px,calc(100%-2rem))] flex-1 flex-col justify-center py-14 pb-28 pt-23 sm:pt-16 sm:pb-32 md:pb-36 md:pt-28 lg:pb-40">
           <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -186,7 +189,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                 
                 <motion.h1
                   variants={itemVariant}
-                  className="mb-6 bg-linear-to-br from-white via-white to-blue-300 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-2xl sm:text-6xl md:text-[4rem]"
+                  className="mb-6 bg-linear-to-br from-slate-900 via-slate-800 to-blue-600 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-sm sm:text-6xl md:text-[4rem]"
                 >
                   Control académico <br className="hidden sm:block" />
                   en un solo flujo
@@ -194,7 +197,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                 
                 <motion.p
                   variants={itemVariant}
-                  className="mb-6 max-w-lg text-base font-medium leading-relaxed text-slate-300 drop-shadow-md sm:text-xl"
+                  className="mb-6 max-w-lg text-base font-medium leading-relaxed text-slate-700 drop-shadow-sm sm:text-xl"
                 >
                   Orquesta entregas, revisiones y cierres con visibilidad total. Sistema de gestión unificada sin fricción.
                 </motion.p>
@@ -220,7 +223,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   <motion.button
                     type="button"
                     onClick={goNav}
-                    className="group flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-8 text-[14px] font-bold text-white backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/25"
+                    className="group flex h-12 items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 text-[14px] font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={scaleTap}
                   >
@@ -251,11 +254,11 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-14 h-48 bg-linear-to-t from-[#020617] via-[#020617]/95 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-14 h-48 bg-linear-to-t from-[#f8fafc] via-[#f8fafc]/80 to-transparent" />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center px-4 md:px-8">
           <div className="pointer-events-auto w-full max-w-7xl">
-            <ul className="flex list-none flex-row gap-4 overflow-x-auto rounded-[2.5rem] border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur-3xl [&::-webkit-scrollbar]:hidden">
+            <ul className="flex list-none flex-row gap-4 overflow-x-auto rounded-[2.5rem] border border-slate-200/60 bg-white/70 p-4 shadow-xl backdrop-blur-3xl [&::-webkit-scrollbar]:hidden">
               {FLOW_LEGEND.map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -287,7 +290,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     <div className="flex min-w-0 flex-col gap-1">
                       <p className={cn(
                         "text-[14px] font-bold tracking-tight transition-colors duration-300",
-                        item.featured ? "text-white" : "text-slate-300 group-hover:text-white"
+                        item.featured ? "text-slate-900" : "text-slate-700 group-hover:text-slate-900"
                       )}>
                         {item.title}
                       </p>

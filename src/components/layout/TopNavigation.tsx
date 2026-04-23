@@ -1,7 +1,7 @@
 import { useCallback } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Zap, User } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import {
   DASHBOARD_NAV_SCROLL_TABS,
   DASHBOARD_SCROLL_TAB_IDS,
@@ -149,7 +149,23 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
             </Link>
           </motion.div>
 
-          <div className="h-6 w-[1px] bg-white/10 hidden sm:block" />
+          <div className={cn("hidden h-6 w-px sm:block", darkNav ? "bg-white/20" : "bg-slate-200")} />
+
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={scaleTap}
+            type="button"
+            onClick={() => navigate("/login")}
+            className={cn(
+              "group flex h-10 items-center gap-2 rounded-xl px-3 text-[12px] font-semibold tracking-tight transition-all duration-300",
+              darkNav
+                ? "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20"
+                : "bg-white text-slate-700 ring-1 ring-slate-200 hover:border-blue-200 hover:text-slate-900 hover:shadow-sm",
+            )}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="max-sm:hidden">Salir sesión</span>
+          </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.05 }}

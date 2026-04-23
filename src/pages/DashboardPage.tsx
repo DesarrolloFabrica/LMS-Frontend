@@ -1,8 +1,12 @@
-﻿import { useEffect, useLayoutEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+﻿import { motion } from "framer-motion";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ActiveProcessesSection } from "@/components/dashboard/ActiveProcessesSection";
+import { DashboardEntryTransition } from "@/components/dashboard/DashboardEntryTransition";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { FlowExplanationSection } from "@/components/dashboard/FlowExplanationSection";
+import type { AuthNavigationState, AuthProfile } from "@/lib/authExperience";
+import { AUTH_EXPERIENCE_INTENSITY } from "@/lib/authExperience";
 import {
   DASHBOARD_SECTION_ID_TO_NAV,
   dashboardSectionIdFromHash,
@@ -15,9 +19,16 @@ const NAV_SWITCH_PX = 80;
 
 export function DashboardPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const heroDarkRef = useRef<HTMLElement | null>(null);
   const setDashboardNavOverLight = useUIStore((s) => s.setDashboardNavOverLight);
   const setDashboardNavScrollActiveTo = useUIStore((s) => s.setDashboardNavScrollActiveTo);
+  const navState = (location.state ?? null) as AuthNavigationState | null;
+  const fromAuthTransition = navState?.fromAuthTransition === true;
+  const entryProfile: AuthProfile = navState?.authProfile === "full" ? "full" : "reduced";
+  const [showEntryTransition, setShowEntryTransition] = useState(fromAuthTransition);
+  const intensity =
+    entryProfile === "full" ? AUTH_EXPERIENCE_INTENSITY.full : AUTH_EXPERIENCE_INTENSITY.reduced;
 
   const activeQueue = processes.filter((p) => p.status !== "Completed");
   const inReviewCount = processes.filter((p) => p.status === "In Review").length;
@@ -39,6 +50,11 @@ export function DashboardPage() {
       setDashboardNavOverLight(false);
     };
   }, [setDashboardNavOverLight]);
+
+  useEffect(() => {
+    if (!fromAuthTransition) return;
+    navigate(`${location.pathname}${location.hash}`, { replace: true, state: null });
+  }, [fromAuthTransition, location.hash, location.pathname, navigate]);
 
   useLayoutEffect(() => {
     if (location.pathname !== "/dashboard") return;
@@ -76,9 +92,24 @@ export function DashboardPage() {
 
   return (
     <>
+      <DashboardEntryTransition
+        active={showEntryTransition}
+        profile={entryProfile}
+        onComplete={() => setShowEntryTransition(false)}
+      />
+      <motion.div
+        initial={
+          fromAuthTransition
+            ? { opacity: 0.7, scale: intensity.scaleFrom, filter: `blur(${intensity.blurPx}px)` }
+            : false
+        }
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: entryProfile === "full" ? 0.9 : 0.2, ease: [0.16, 1, 0.3, 1] }}
+      >
       <DashboardHero ref={heroDarkRef} statsLine={statsLine} />
       <FlowExplanationSection />
       <ActiveProcessesSection />
+      </motion.div>
     </>
   );
 }
