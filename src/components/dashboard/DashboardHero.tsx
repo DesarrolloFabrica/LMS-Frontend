@@ -19,7 +19,6 @@ import {
   scrollToDashboardSection,
 } from "@/lib/dashboardSectionIds";
 import {
-  floatingLoopSubtle,
   motionDuration,
   motionEase,
   reducedStaggerContainer,
@@ -129,9 +128,6 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
   const shiftY = parallax.enabled ? parallax.y * 8 : 0;
   const glowX = 50 + parallax.x * 12;
   const glowY = 42 + parallax.y * 10;
-  const cardTiltX = parallax.enabled ? parallax.x * -5 : 0;
-  const cardTiltY = parallax.enabled ? parallax.y * -4 : 0;
-
   const staggerParent = reducedStaggerContainer(reducedMotion);
 
   return (
@@ -276,8 +272,8 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     )}
                   >
                     {/* Detalles decorativos de módulo */}
-                    <div className="absolute -left-[1px] top-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="absolute -right-[1px] bottom-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="absolute -left-px top-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="absolute -right-px bottom-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
 
                     <div className={cn(
                       "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all duration-500",
@@ -303,7 +299,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     {/* Efecto de escaneo hover */}
                     <div className="absolute inset-0 h-full w-full overflow-hidden rounded-3xl opacity-0 group-hover:opacity-100 pointer-events-none">
                       <motion.div 
-                        className="absolute inset-y-0 w-[1px] bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                        className="absolute inset-y-0 w-px bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                         animate={{ left: ["0%", "100%"] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                       />
