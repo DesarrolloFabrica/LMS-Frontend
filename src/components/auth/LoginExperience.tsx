@@ -40,7 +40,6 @@ export function LoginExperience() {
     const t1 = window.setTimeout(() => setProgressStep("syncing"), reducedMotion ? 120 : 430);
     const t2 = window.setTimeout(() => setProgressStep("loading"), reducedMotion ? 220 : 870);
     const complete = window.setTimeout(() => {
-      setPhase("enteringDashboard");
       navigate("/dashboard", { state: { fromAuthTransition: true, authProfile } });
     }, authProfile === "reduced" ? AUTH_EXPERIENCE_TIMINGS.auth.reduced : AUTH_EXPERIENCE_TIMINGS.auth.full);
     return () => {
@@ -51,7 +50,7 @@ export function LoginExperience() {
   }, [authProfile, navigate, phase, reducedMotion]);
 
   return (
-    <div className="relative min-h-dvh overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
+    <div className="relative h-dvh overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
       {/* Premium Background Image */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -72,10 +71,10 @@ export function LoginExperience() {
             animate={{ opacity: 1, scale: 1, filter: "none" }}
             exit={{ opacity: 0, scale: 0.98, filter: "blur(10px)" }}
             transition={{ duration: reducedMotion ? 0.2 : 0.8 }}
-            className="relative z-10 mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-lg items-center justify-center"
+            className="relative z-10 mx-auto flex h-full w-full max-w-lg items-center justify-center"
           >
             <div className="relative w-full min-h-[500px] flex items-center justify-center">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" initial={false}>
                 {phase === "authenticating" ? (
                   <AuthTransitionOverlay
                     key="auth-overlay"

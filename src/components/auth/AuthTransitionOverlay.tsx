@@ -14,10 +14,13 @@ export function AuthTransitionOverlay({ active, step, reducedMotion }: AuthTrans
     <AnimatePresence>
       {active ? (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 0.88 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reducedMotion ? 0.08 : 0.5, delay: reducedMotion ? 0 : 0.5 }}
+          transition={{
+            duration: reducedMotion ? 0.08 : 0.42,
+            ease: [0.22, 1, 0.36, 1],
+          }}
           className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center p-8"
         >
           <div className="relative overflow-hidden rounded-[3rem] border border-white/40 bg-white/70 p-10 shadow-[0_40px_100px_-20px_rgba(15,23,42,0.1)] backdrop-blur-3xl sm:p-14 w-full max-w-lg">

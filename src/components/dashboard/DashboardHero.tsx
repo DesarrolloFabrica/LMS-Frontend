@@ -83,9 +83,9 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
 
   const itemVariant = reducedMotion
     ? {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.01 } },
-      }
+      hidden: { opacity: 0 },
+      visible: { opacity: 1, transition: { duration: 0.01 } },
+    }
     : staggerItem;
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
     el.defaultMuted = true;
     const play = () => {
       const r = el.play();
-      if (r !== undefined) void r.catch(() => {});
+      if (r !== undefined) void r.catch(() => { });
     };
     play();
     const onVis = () => {
@@ -184,7 +184,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   <Cpu className="h-3 w-3" />
                   Workspace Operativo v2.0
                 </motion.div>
-                
+
                 <motion.h1
                   variants={itemVariant}
                   className="mb-6 bg-linear-to-br from-white via-slate-200 to-blue-400 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-lg sm:text-6xl md:text-[4rem]"
@@ -192,14 +192,14 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   Control académico <br className="hidden sm:block" />
                   en un solo flujo
                 </motion.h1>
-                
+
                 <motion.p
                   variants={itemVariant}
                   className="mb-6 max-w-lg text-base font-medium leading-relaxed text-slate-300 drop-shadow-md sm:text-xl"
                 >
                   Orquesta entregas, revisiones y cierres con visibilidad total. Sistema de gestión unificada sin fricción.
                 </motion.p>
-                
+
                 <motion.div variants={itemVariant} className="mb-10 flex items-center gap-4 text-xs font-bold tracking-widest text-blue-400/80">
                   <Binary className="h-4 w-4" />
                   {statsLine.toUpperCase()}
@@ -217,7 +217,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     <GitBranch className="relative z-10 h-4 w-4 transition-transform group-hover:rotate-12" />
                     <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
                   </motion.button>
-                  
+
                   <motion.button
                     type="button"
                     onClick={goNav}
@@ -296,10 +296,10 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                         {item.description}
                       </p>
                     </div>
-                    
+
                     {/* Efecto de escaneo hover */}
                     <div className="absolute inset-0 h-full w-full overflow-hidden rounded-3xl opacity-0 group-hover:opacity-100 pointer-events-none">
-                      <motion.div 
+                      <motion.div
                         className="absolute inset-y-0 w-px bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                         animate={{ left: ["0%", "100%"] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}

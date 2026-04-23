@@ -34,11 +34,11 @@ export const AUTH_EXPERIENCE_TIMINGS = {
   },
   auth: {
     reduced: 400,
-    full: 1300,
+    full: 980,
   },
   dashboardEntry: {
     reduced: 200,
-    full: 900,
+    full: 880,
   },
 } as const;
 
@@ -49,8 +49,8 @@ export const AUTH_EXPERIENCE_INTENSITY = {
     scaleFrom: 0.996,
   },
   full: {
-    blurPx: 7,
-    glowOpacity: 0.24,
-    scaleFrom: 0.986,
+    blurPx: 4,
+    glowOpacity: 0.18,
+    scaleFrom: 0.992,
   },
 } as const;

@@ -17,7 +17,7 @@ export function BootSequence({ substateIndex, reducedMotion }: BootSequenceProps
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, filter: "blur(10px)" }}
       transition={{ duration: reducedMotion ? 0.12 : 0.6 }}
-      className="relative isolate flex min-h-dvh items-center justify-center overflow-hidden px-6"
+      className="relative isolate flex h-full min-h-full items-center justify-center overflow-hidden px-6"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_60%)] animate-pulse" aria-hidden />
 
