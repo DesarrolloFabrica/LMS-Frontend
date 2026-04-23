@@ -12,12 +12,17 @@ export const motionDuration = {
   md: 0.5,
   lg: 0.65,
   xl: 0.8,
+  authBoot: 1.9,
+  authSwitch: 0.5,
+  authOverlay: 1.3,
+  dashboardEntry: 0.9,
 } as const;
 
 export const motionStagger = {
   tight: 0.06,
   base: 0.1,
   relaxed: 0.14,
+  authInputs: 0.08,
 } as const;
 
 const defaultEnter: Transition = {
@@ -49,6 +54,26 @@ export const fadeUp: Variants = {
     opacity: 1,
     y: 0,
     transition: { ...defaultEnter, duration: motionDuration.md },
+  },
+};
+
+export const authPanelIn: Variants = {
+  hidden: { opacity: 0, y: 16, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: motionDuration.authSwitch, ease: motionEase.outExpo },
+  },
+};
+
+export const dashboardEntryReveal: Variants = {
+  hidden: { opacity: 0.72, scale: 0.986, filter: "blur(7px)" },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { duration: motionDuration.dashboardEntry, ease: motionEase.outExpo },
   },
 };
 

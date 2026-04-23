@@ -232,10 +232,10 @@ export function FlowExplanationSection() {
                 className="group relative flex-1"
               >
                 {/* Efecto de brillo de fondo en hover */}
-                <div className="absolute -inset-2 rounded-[2rem] bg-linear-to-br from-blue-500/10 to-indigo-500/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="absolute -inset-2 rounded-4xl bg-linear-to-br from-blue-500/10 to-indigo-500/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
                 
                 <div className={cn(
-                  "relative flex h-full items-center gap-6 overflow-hidden rounded-[2rem] border bg-white/40 p-6 shadow-sm transition-all duration-500 backdrop-blur-3xl",
+                  "relative flex h-full items-center gap-6 overflow-hidden rounded-4xl border bg-white/40 p-6 shadow-sm transition-all duration-500 backdrop-blur-3xl",
                   "border-slate-200/60 hover:border-blue-400/50 hover:shadow-2xl hover:shadow-blue-500/10"
                 )}>
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.25rem] bg-white shadow-lg ring-1 ring-slate-100 transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-500/20 group-hover:ring-blue-200">
@@ -262,9 +262,9 @@ export function FlowExplanationSection() {
                   </div>
 
                   {/* Efecto de escaneo al pasar el mouse */}
-                  <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 overflow-hidden rounded-4xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                     <motion.div 
-                      className="absolute inset-x-0 h-[1px] bg-blue-400/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                      className="absolute inset-x-0 h-px bg-blue-400/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                       animate={{ top: ["0%", "100%"] }}
                       transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
                     />

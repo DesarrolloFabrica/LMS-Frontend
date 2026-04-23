@@ -19,7 +19,6 @@ import {
   scrollToDashboardSection,
 } from "@/lib/dashboardSectionIds";
 import {
-  floatingLoopSubtle,
   motionDuration,
   motionEase,
   reducedStaggerContainer,
@@ -42,7 +41,6 @@ function assignRef<T>(instanceRef: Ref<T> | undefined, node: T | null) {
 }
 
 const HERO_VIDEO_SRC = "/videos/192779-893446888.mp4";
-const HERO_VIDEO_POSTER = "/images/hero-tech.jpg";
 
 const FLOW_LEGEND: { title: string; description: string; icon: LucideIcon; featured?: boolean }[] = [
   {
@@ -85,9 +83,9 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
 
   const itemVariant = reducedMotion
     ? {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.01 } },
-      }
+      hidden: { opacity: 0 },
+      visible: { opacity: 1, transition: { duration: 0.01 } },
+    }
     : staggerItem;
 
   useEffect(() => {
@@ -96,7 +94,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
     el.defaultMuted = true;
     const play = () => {
       const r = el.play();
-      if (r !== undefined) void r.catch(() => {});
+      if (r !== undefined) void r.catch(() => { });
     };
     play();
     const onVis = () => {
@@ -129,9 +127,6 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
   const shiftY = parallax.enabled ? parallax.y * 8 : 0;
   const glowX = 50 + parallax.x * 12;
   const glowY = 42 + parallax.y * 10;
-  const cardTiltX = parallax.enabled ? parallax.x * -5 : 0;
-  const cardTiltY = parallax.enabled ? parallax.y * -4 : 0;
-
   const staggerParent = reducedStaggerContainer(reducedMotion);
 
   return (
@@ -142,7 +137,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: motionDuration.xl, ease: motionEase.outExpo }}
-        className="relative flex h-dvh min-h-0 w-full shrink-0 flex-col overflow-hidden bg-[#020617] text-white"
+        className="relative flex h-dvh min-h-0 w-full shrink-0 flex-col overflow-hidden bg-slate-950 text-white"
       >
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div
@@ -152,13 +147,12 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
           >
             <video
               ref={videoRef}
-              className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.7] contrast-[1.1]"
+              className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.8] contrast-[1.2] saturate-[1.3] opacity-100"
               autoPlay
               muted
               loop
               playsInline
               preload="auto"
-              poster={HERO_VIDEO_POSTER}
               aria-hidden
             >
               <source src={HERO_VIDEO_SRC} type="video/mp4" />
@@ -167,14 +161,17 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
         </div>
 
         <div
-          className="pointer-events-none absolute inset-0 z-1 opacity-[0.2]"
+          className="pointer-events-none absolute inset-0 z-1 opacity-[0.3]"
           style={{
-            background: `radial-gradient(ellipse 60% 50% at ${glowX}% ${glowY}%, rgba(59,130,246,0.4), transparent 70%)`,
+            background: `radial-gradient(ellipse 70% 60% at ${glowX}% ${glowY}%, rgba(59,130,246,0.3), transparent 80%)`,
           }}
           aria-hidden
         />
-        <div className="pointer-events-none absolute inset-0 z-1 bg-[#020617]/75 backdrop-blur-[2px]" aria-hidden />
-        <div className="pointer-events-none absolute inset-0 z-1 bg-linear-to-t from-[#020617] via-transparent to-[#020617]/40" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 z-1 bg-slate-950/40 backdrop-blur-[0.5px]" aria-hidden />
+        <div
+          className="pointer-events-none absolute inset-0 z-1 bg-linear-to-t from-slate-950 via-transparent to-white/5"
+          aria-hidden
+        />
 
         <div className="relative z-10 mx-auto flex w-full max-w-[min(1280px,calc(100%-2rem))] flex-1 flex-col justify-center py-14 pb-28 pt-23 sm:pt-16 sm:pb-32 md:pb-36 md:pt-28 lg:pb-40">
           <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -187,22 +184,22 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   <Cpu className="h-3 w-3" />
                   Workspace Operativo v2.0
                 </motion.div>
-                
+
                 <motion.h1
                   variants={itemVariant}
-                  className="mb-6 bg-linear-to-br from-white via-white to-blue-300 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-2xl sm:text-6xl md:text-[4rem]"
+                  className="mb-6 bg-linear-to-br from-white via-slate-200 to-blue-400 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-lg sm:text-6xl md:text-[4rem]"
                 >
                   Control académico <br className="hidden sm:block" />
                   en un solo flujo
                 </motion.h1>
-                
+
                 <motion.p
                   variants={itemVariant}
                   className="mb-6 max-w-lg text-base font-medium leading-relaxed text-slate-300 drop-shadow-md sm:text-xl"
                 >
                   Orquesta entregas, revisiones y cierres con visibilidad total. Sistema de gestión unificada sin fricción.
                 </motion.p>
-                
+
                 <motion.div variants={itemVariant} className="mb-10 flex items-center gap-4 text-xs font-bold tracking-widest text-blue-400/80">
                   <Binary className="h-4 w-4" />
                   {statsLine.toUpperCase()}
@@ -220,11 +217,11 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     <GitBranch className="relative z-10 h-4 w-4 transition-transform group-hover:rotate-12" />
                     <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
                   </motion.button>
-                  
+
                   <motion.button
                     type="button"
                     onClick={goNav}
-                    className="group flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-8 text-[14px] font-bold text-white backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/25"
+                    className="group flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-8 text-[14px] font-bold text-white shadow-sm transition-all hover:bg-white/10 hover:border-white/20 backdrop-blur-md"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={scaleTap}
                   >
@@ -255,11 +252,11 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-14 h-48 bg-linear-to-t from-[#020617] via-[#020617]/95 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-14 h-48 bg-linear-to-t from-slate-950 via-slate-950/80 to-transparent" />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center px-4 md:px-8">
           <div className="pointer-events-auto w-full max-w-7xl">
-            <ul className="flex list-none flex-row gap-4 overflow-x-auto rounded-[2.5rem] border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur-3xl [&::-webkit-scrollbar]:hidden">
+            <ul className="flex list-none flex-row gap-4 overflow-x-auto rounded-[2.5rem] border border-white/10 bg-slate-900/40 p-4 shadow-2xl backdrop-blur-3xl [&::-webkit-scrollbar]:hidden">
               {FLOW_LEGEND.map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -271,13 +268,13 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     className={cn(
                       "group relative flex min-w-64 flex-1 shrink-0 items-center gap-4 rounded-3xl border px-5 py-5 transition-all duration-500 sm:min-w-0",
                       item.featured
-                        ? "border-blue-500/40 bg-blue-500/10 shadow-[0_10px_30px_-10px_rgba(59,130,246,0.3)]"
-                        : "border-white/5 bg-white/2 hover:border-white/20 hover:bg-white/5"
+                        ? "border-blue-500/40 bg-blue-500/20 shadow-[0_10px_30px_-10px_rgba(59,130,246,0.3)]"
+                        : "border-white/5 bg-white/5 hover:border-white/10 hover:bg-white/10"
                     )}
                   >
                     {/* Detalles decorativos de módulo */}
-                    <div className="absolute -left-[1px] top-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="absolute -right-[1px] bottom-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="absolute -left-px top-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="absolute -right-px bottom-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
 
                     <div className={cn(
                       "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all duration-500",
@@ -295,15 +292,15 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                       )}>
                         {item.title}
                       </p>
-                      <p className="truncate text-[11px] font-medium text-slate-500 transition-colors group-hover:text-slate-400">
+                      <p className="truncate text-[11px] font-medium text-slate-400 transition-colors group-hover:text-slate-300">
                         {item.description}
                       </p>
                     </div>
-                    
+
                     {/* Efecto de escaneo hover */}
                     <div className="absolute inset-0 h-full w-full overflow-hidden rounded-3xl opacity-0 group-hover:opacity-100 pointer-events-none">
-                      <motion.div 
-                        className="absolute inset-y-0 w-[1px] bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                      <motion.div
+                        className="absolute inset-y-0 w-px bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                         animate={{ left: ["0%", "100%"] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                       />
