@@ -1,6 +1,7 @@
 ﻿import { motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CoordinatorRequestsSection } from "@/components/coordinator/CoordinatorRequestsSection";
 import { DashboardEntryTransition } from "@/components/dashboard/DashboardEntryTransition";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DriveSubmissionSection } from "@/components/submissions/DriveSubmissionSection";
@@ -138,7 +139,11 @@ export function DashboardPage() {
           id="drive-submission-form"
           className="min-h-screen scroll-mt-0"
         >
-          <DriveSubmissionSection />
+          {userRole === "coordinador" ? (
+            <CoordinatorRequestsSection />
+          ) : (
+            <DriveSubmissionSection />
+          )}
         </section>
       </motion.div>
     </>

@@ -43,6 +43,22 @@ export interface DashboardActiveCard {
 
 export type UserRole = "gif" | "coordinador";
 
+/** Estado del ciclo de vida de una solicitud LMS. */
+export type RequestStatus = "pendiente" | "en_revision" | "aprobada" | "rechazada";
+
+/** Solicitud creada por GIF y gestionada por Coordinación. */
+export interface LmsRequest {
+  id: string;
+  subject: string;
+  level: string;
+  source: string;
+  summary: string;
+  status: RequestStatus;
+  createdAt: string;
+  createdByRole: UserRole;
+  createdByName?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;

@@ -3,21 +3,15 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
-    CheckCircle2,
-    Sparkles,
     Send,
-    Box,
-    FileText,
-    Link as LinkIcon,
-    Activity,
 } from "lucide-react";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { useRequestsStore } from "@/store/requestsStore";
 
 /**
  * Esquema de validación del formulario.
@@ -32,36 +26,31 @@ const schema = z.object({
 
 type SubmissionForm = z.infer<typeof schema>;
 
-/**
- * Lista visual que se marca según el avance del formulario.
- */
-const checklist = [
-    "Objetivo instruccional definido",
-    "Unidades y alcance acordados",
-    "Material fuente verificable",
-];
-
-const HERO_LOTTIE_SRC = "/videos/Processing.lottie";
-
 export function DriveSubmissionSection() {
     const [view, setView] = useState<"new" | "list">("new");
-    const { register, handleSubmit, watch } = useForm<SubmissionForm>({
+    const createRequest = useRequestsStore((state) => state.createRequest);
+    const requests = useRequestsStore((state) => state.requests);
+    const { register, handleSubmit, reset } = useForm<SubmissionForm>({
         resolver: zodResolver(schema),
     });
 
-    const formValues = watch();
+    const myRequests = requests.filter((request) => request.createdByRole === "gif");
 
-    /**
-     * Calcula cuántos campos ya cumplen las condiciones mínimas.
-     * Esto alimenta la barra de progreso lateral.
-     */
-    let completedCount = 0;
-
-    if (formValues.subject) completedCount++;
-    if (formValues.summary && formValues.summary.length >= 20) completedCount++;
-    if (formValues.source && formValues.source.includes("http")) completedCount++;
-
-    const progressPercent = Math.round((completedCount / 3) * 100);
+    const onSubmit = (data: SubmissionForm) => {
+        /**
+         * Persistimos en Zustand para compartir la data con la vista de Coordinador
+         * y también reutilizarla en "Mis solicitudes".
+         */
+        createRequest({
+            subject: data.subject,
+            level: data.level,
+            source: data.source,
+            summary: data.summary,
+        });
+        toast.success("Solicitud enviada");
+        reset();
+        setView("list");
+    };
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden bg-[#FAFAFA]">
@@ -106,7 +95,7 @@ export function DriveSubmissionSection() {
                 {/* Formulario principal de carga */}
                 {view === "new" && (
                     <form
-                        onSubmit={handleSubmit(() => toast.success("Solicitud enviada"))}
+                        onSubmit={handleSubmit(onSubmit)}
                         className="mx-auto mt-10 w-full max-w-4xl px-4"
                     >
                         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -215,10 +204,47 @@ export function DriveSubmissionSection() {
                         <h2 className="text-sm font-bold text-slate-700 mb-4">
                             Mis solicitudes
                         </h2>
-
-                        <p className="text-sm text-slate-500">
-                            Aquí se mostrará la tabla de solicitudes del usuario.
-                        </p>
+                        {myRequests.length === 0 ? (
+                            <p className="text-sm text-slate-500">
+                                Aún no tienes solicitudes creadas.
+                            </p>
+                        ) : (
+                            <div className="grid gap-3">
+                                {myRequests.map((request) => (
+                                    <article
+                                        key={request.id}
+                                        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                                    >
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                                                {request.id}
+                                            </p>
+                                            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                                {request.status.replace("_", " ")}
+                                            </span>
+                                        </div>
+                                        <h3 className="mt-2 text-base font-semibold text-slate-800">
+                                            {request.subject}
+                                        </h3>
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            Nivel/Tipo: {request.level}
+                                        </p>
+                                        <a
+                                            href={request.source}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="mt-1 inline-block text-sm text-blue-600 hover:underline"
+                                        >
+                                            Ver Google Drive
+                                        </a>
+                                        <p className="mt-2 text-sm text-slate-600">{request.summary}</p>
+                                        <p className="mt-2 text-xs text-slate-400">
+                                            Creada: {new Date(request.createdAt).toLocaleString()}
+                                        </p>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 
