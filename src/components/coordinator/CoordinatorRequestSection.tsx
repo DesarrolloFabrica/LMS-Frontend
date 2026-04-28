@@ -18,6 +18,13 @@ export function CoordinatorRequestsSection() {
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | "todas">("todas");
+
+  const filteredRequests =
+    statusFilter === "todas"
+      ? requests
+      : requests.filter((request) => request.status === statusFilter);
+
 
 
   const statusStyles: Record<RequestStatus, string> = {
@@ -108,15 +115,44 @@ export function CoordinatorRequestsSection() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-          {requests.length === 0 ? (
+          {filteredRequests.length === 0 ? (
 
-            <p className="text-sm text-slate-500">Aún no hay solicitudes recibidas.</p>
+            <p className="text-sm text-slate-500">
+  No hay solicitudes para este filtro.
+</p>
 
           ) : (
 
+
             <div className="grid gap-4">
 
-              {requests.map((request) => {
+              {/* Filtro de solicitudes por estado */}
+              <div className="mb-5 flex flex-wrap gap-2">
+                {[
+                  { value: "todas", label: "Todas" },
+                  { value: "en_revision", label: "En revisión" },
+                  { value: "aprobada", label: "Aprobada" },
+                  { value: "rechazada", label: "Rechazada" },
+                ].map((option) => {
+                  const isActive = statusFilter === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setStatusFilter(option.value as RequestStatus | "todas")}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${isActive
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {filteredRequests.map((request) => {
 
                 const isExpanded = expandedId === request.id;
 
