@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { LmsRequest } from "@/types";
 
 interface CreateRequestInput {
@@ -24,41 +25,50 @@ interface RequestsState {
 
 const createRequestId = () => `REQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-export const useRequestsStore = create<RequestsState>((set) => ({
-  requests: [],
-  createRequest: (input) =>
-    set((state) => ({
-      requests: [
-        {
-          id: createRequestId(),
-          subject: input.subject,
-          level: input.level,
-          source: input.source,
-          summary: input.summary,
-          status: "pendiente",
-          createdAt: new Date().toISOString(),
-          createdByRole: "gif",
-          createdByName: input.createdByName,
-        },
-        ...state.requests,
-      ],
-    })),
-  setRequestInReview: (id) =>
-    set((state) => ({
-      requests: state.requests.map((request) =>
-        request.id === id ? { ...request, status: "en_revision" } : request,
-      ),
-    })),
-  approveRequest: (id) =>
-    set((state) => ({
-      requests: state.requests.map((request) =>
-        request.id === id ? { ...request, status: "aprobada" } : request,
-      ),
-    })),
-  rejectRequest: (id) =>
-    set((state) => ({
-      requests: state.requests.map((request) =>
-        request.id === id ? { ...request, status: "rechazada" } : request,
-      ),
-    })),
-}));
+export const useRequestsStore = create<RequestsState>()(
+  persist(
+    (set) => ({
+      requests: [],
+      createRequest: (input) =>
+        set((state) => ({
+          requests: [
+            {
+              id: createRequestId(),
+              subject: input.subject,
+              level: input.level,
+              source: input.source,
+              summary: input.summary,
+              status: "pendiente",
+              createdAt: new Date().toISOString(),
+              createdByRole: "gif",
+              createdByName: input.createdByName,
+            },
+            ...state.requests,
+          ],
+        })),
+      setRequestInReview: (id) =>
+        set((state) => ({
+          requests: state.requests.map((request) =>
+            request.id === id ? { ...request, status: "en_revision" } : request,
+          ),
+        })),
+      approveRequest: (id) =>
+        set((state) => ({
+          requests: state.requests.map((request) =>
+            request.id === id ? { ...request, status: "aprobada" } : request,
+          ),
+        })),
+      rejectRequest: (id) =>
+        set((state) => ({
+          requests: state.requests.map((request) =>
+            request.id === id ? { ...request, status: "rechazada" } : request,
+          ),
+        })),
+    }),
+    {
+      name: "carga-lms-requests",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ requests: state.requests }),
+    },
+  ),
+);
