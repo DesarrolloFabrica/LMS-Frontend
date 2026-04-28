@@ -94,63 +94,7 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
         </div>
 
         {/* Centro: Navegación Flotante */}
-        <nav className="hidden min-w-0 flex-1 justify-center md:flex" aria-label="Navegación principal">
-          <div className={cn(
-            "relative flex items-center gap-1 rounded-full p-1 ring-1",
-            isGlass ? "bg-white/5 ring-white/10" : "bg-slate-100/50 ring-slate-200/50"
-          )}>
-            {DASHBOARD_NAV_SCROLL_TABS.map((tab: any) => {
-              const isActive = tab.path
-                ? pathname === tab.path
-                : (isDashboard ? dashboardNavScrollActiveTo === tab.id : false);
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    if (tab.path) {
-                      navigate(tab.path);
-                      return;
-                    }
-
-                    if (isDashboard) {
-                      setDashboardNavScrollActiveTo(tab.id);
-                      scrollToDashboardSection(tab.sectionId);
-                    } else {
-                      window.location.href = `/dashboard#${tab.sectionId}`;
-                    }
-                  }}
-                  className={cn(
-                    "relative flex items-center justify-center rounded-full px-5 py-2 text-[12.5px] font-bold tracking-tight transition-all duration-300",
-                    isActive
-                      ? (isGlass ? "text-white" : "text-indigo-600")
-                      : (isGlass ? "text-white/60 hover:text-white" : "text-slate-600 hover:text-slate-900")
-                  )}
-                >
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        layoutId={LAYOUT_ID}
-                        className={cn(
-                          "absolute inset-0 z-0 rounded-full",
-                          isGlass
-                            ? "bg-white/15 shadow-[0_0_15px_rgba(255,255,255,0.15)] ring-1 ring-white/20"
-                            : "bg-white shadow-sm ring-1 ring-slate-200"
-                        )}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                  </AnimatePresence>
-                  <span className="relative z-10">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
 
         {/* Lado Derecho: Acciones y Perfil */}
         <div className="flex items-center gap-3">
