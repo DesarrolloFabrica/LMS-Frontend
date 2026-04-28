@@ -1,11 +1,13 @@
 import type { RequestStatus } from "@/types";
 import { useRequestsStore } from "@/store/requestsStore";
+import { useState } from "react";
 
 export function CoordinatorRequestsSection() {
   const requests = useRequestsStore((state) => state.requests);
   const setRequestInReview = useRequestsStore((state) => state.setRequestInReview);
   const approveRequest = useRequestsStore((state) => state.approveRequest);
   const rejectRequest = useRequestsStore((state) => state.rejectRequest);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const statusStyles: Record<RequestStatus, string> = {
     pendiente: "bg-amber-50 text-amber-700",
@@ -20,6 +22,9 @@ export function CoordinatorRequestsSection() {
     aprobada: "Aprobada",
     rechazada: "Rechazada",
   };
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-[#FAFAFA]">
@@ -52,76 +57,71 @@ export function CoordinatorRequestsSection() {
             <p className="text-sm text-slate-500">Aún no hay solicitudes recibidas.</p>
           ) : (
             <div className="grid gap-4">
-              {requests.map((request) => (
-                <article
-                  key={request.id}
-                  className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-300 hover:bg-white hover:shadow-sm"
-                >
-                  {/* Resumen principal de la solicitud recibida */}
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{request.id}</p>
-                      <h3 className="mt-1 text-base font-bold text-slate-800">{request.subject}</h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Nivel / Tipo: {request.level}
-                      </p>
+              {requests.map((request) => {
+                const isExpanded = expandedId === request.id;
+
+                return (
+                  <article key={request.id} className="...">
+
+                    {/* 🔹 HEADER RESUMIDO */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900">
+                        {request.subject}
+                      </h3>
+
+                      <span className={statusStyles[request.status]}>
+                        {statusLabel[request.status]}
+                      </span>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusStyles[request.status]}`}>
-                      {statusLabel[request.status]}
-                    </span>
-                  </div>
 
-                  <div className="grid gap-2 text-sm text-slate-600">
-                    <p>
-                      <span className="font-semibold text-slate-700">Drive:</span>{" "}
-                      <a
-                        href={request.source}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {request.source}
-                      </a>
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-700">Descripción:</span> {request.summary}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-700">Creada:</span>{" "}
-                      {new Date(request.createdAt).toLocaleString()}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-700">Creada por:</span>{" "}
-                      {request.createdByName ?? "Usuario GIF"} ({request.createdByRole})
-                    </p>
-                  </div>
+                    {/* 🔹 BOTÓN TOGGLE */}
+                    <button
+                      onClick={() => toggleExpand(request.id)}
+                      className="mt-2 text-sm text-blue-600 hover:underline"
+                    >
+                      {isExpanded ? "Ocultar detalles ▲" : "Ver detalles ▼"}
+                    </button>
 
-                  {/* Acciones rápidas para prototipo sin backend */}
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setRequestInReview(request.id)}
-                      className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-                    >
-                      Marcar en revisión
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => approveRequest(request.id)}
-                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                    >
-                      Aprobar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => rejectRequest(request.id)}
-                      className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                    >
-                      Rechazar
-                    </button>
-                  </div>
-                </article>
-              ))}
+                    {/* 🔻 CONTENIDO EXPANDIDO */}
+                    {isExpanded && (
+                      <div className="mt-4 space-y-2 text-sm text-gray-600">
+
+                        <p>
+                          <strong>Drive:</strong>{" "}
+                          <a
+                            href={request.source}
+                            target="_blank"
+                            className="text-blue-600 underline"
+                          >
+                            Ver enlace
+                          </a>
+                        </p>
+
+                        <p><strong>Descripción:</strong> {request.summary}</p>
+                        <p><strong>Creada:</strong> {request.createdAt}</p>
+                        <p>
+                          <strong>Creada por:</strong> {request.createdByName} ({request.createdByRole})
+                        </p>
+
+                        {/* 🔹 ACCIONES */}
+                        <div className="flex gap-2 pt-2">
+                          <button onClick={() => setRequestInReview(request.id)}>
+                            Marcar en revisión
+                          </button>
+
+                          <button onClick={() => approveRequest(request.id)}>
+                            Aprobar
+                          </button>
+
+                          <button onClick={() => rejectRequest(request.id)}>
+                            Rechazar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
