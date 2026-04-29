@@ -4,7 +4,6 @@ import { useState } from "react";
 export function CoordinatorRequestsSection() {
 
   const requests = useRequestsStore((state) => state.requests);
-  const setRequestInReview = useRequestsStore((state) => state.setRequestInReview);
   const approveRequest = useRequestsStore((state) => state.approveRequest);
   const rejectRequest = useRequestsStore((state) => state.rejectRequest);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -12,6 +11,14 @@ export function CoordinatorRequestsSection() {
   const [showFilters, setShowFilters] = useState(false);
   const [semesterFilter, setSemesterFilter] = useState("todos");
   const [programFilter, setProgramFilter] = useState("todos");
+
+  // --- Estado del chatbox de ajustes ---
+  // adjustmentBoxId: ID de la solicitud que tiene el chatbox abierto (null = ninguno).
+  const [adjustmentBoxId, setAdjustmentBoxId] = useState<string | null>(null);
+  // adjustmentNotes: texto que el coordinador está escribiendo como observación.
+  const [adjustmentNotes, setAdjustmentNotes] = useState("");
+  // adjustmentError: mensaje de validación cuando el coordinador intenta confirmar sin texto.
+  const [adjustmentError, setAdjustmentError] = useState("");
 
 
   // Aplica los tres filtros al mismo tiempo:
@@ -35,7 +42,9 @@ export function CoordinatorRequestsSection() {
     pendiente: "bg-amber-50 text-amber-700 border border-amber-200",
     en_revision: "bg-blue-50 text-blue-700 border border-blue-200",
     aprobada: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    rechazada: "bg-rose-50 text-rose-700 border border-rose-200",
+    // "rechazada" significa que el coordinador pidió ajustes al GIF.
+    // No es un rechazo definitivo: el GIF puede corregir y reenviar.
+    rechazada: "bg-orange-50 text-orange-700 border border-orange-200",
   };
 
 
@@ -43,11 +52,53 @@ export function CoordinatorRequestsSection() {
     pendiente: "Pendiente",
     en_revision: "En revisión",
     aprobada: "Aprobada",
-    rechazada: "Rechazada",
+    // "rechazada" se muestra al GIF como "Requiere ajustes" para indicar que
+    // debe hacer correcciones y notificar al coordinador.
+    rechazada: "Requiere ajustes",
   };
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
+    // Cierra el chatbox de ajustes si se colapsa la tarjeta correspondiente.
+    if (adjustmentBoxId === id) {
+      setAdjustmentBoxId(null);
+      setAdjustmentNotes("");
+      setAdjustmentError("");
+    }
+  }
 
+  /**
+   * Abre el chatbox de ajustes para una solicitud específica.
+   * No cambia el estado de la solicitud hasta que el coordinador confirme.
+   */
+  function openAdjustmentBox(requestId: string) {
+    setAdjustmentBoxId(requestId);
+    setAdjustmentNotes("");
+    setAdjustmentError("");
+  }
+
+  /** Cierra el chatbox sin hacer ningún cambio de estado. */
+  function cancelAdjustmentBox() {
+    setAdjustmentBoxId(null);
+    setAdjustmentNotes("");
+    setAdjustmentError("");
+  }
+
+  /**
+   * Confirma los ajustes:
+   * - Valida que el textarea no esté vacío (trim()).
+   * - Llama a rejectRequest con el texto para guardar las observaciones.
+   * - Limpia y cierra el chatbox.
+   */
+  function confirmAdjustments(requestId: string) {
+    if (adjustmentNotes.trim() === "") {
+      // Muestra el mensaje de validación si el campo está vacío.
+      setAdjustmentError("Debes escribir una observación antes de solicitar ajustes.");
+      return;
+    }
+    rejectRequest(requestId, adjustmentNotes.trim());
+    setAdjustmentBoxId(null);
+    setAdjustmentNotes("");
+    setAdjustmentError("");
   }
 
   return (
@@ -137,7 +188,7 @@ export function CoordinatorRequestsSection() {
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
                       >
                         <option value="todas">Todas</option>
-                        <option value="en_revision">En revisión</option>
+                        <option value="pendiente">Pendiente</option>
                         <option value="aprobada">Aprobada</option>
                         <option value="rechazada">Rechazada</option>
                       </select>
@@ -201,27 +252,48 @@ export function CoordinatorRequestsSection() {
                       className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       {/* 🔹 HEADER RESUMIDO */}
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">
-                          {request.subject}
-                        </h3>
-                        <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}>
+                      {/* Header principal de la tarjeta */}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            Solicitud LMS
+                          </p>
+
+                          <h3 className="mt-1 text-lg font-semibold leading-tight text-slate-900">
+                            {request.subject}
+                          </h3>
+                        </div>
+
+                        <span
+                          className={`shrink-0 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}
+                        >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {statusLabel[request.status]}
                         </span>
                       </div>
-                      {/* 🔹 BOTÓN TOGGLE */}
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-sm text-slate-500">
-                          {request.level}
-                        </span>
+
+                      {/* Metadata + acción */}
+                      <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
+                            {request.level}
+                          </span>
+
+                          <span className="text-slate-300">•</span>
+
+                          <span>{request.program}</span>
+
+                          <span className="text-slate-300">•</span>
+
+                          <span>{request.semester}</span>
+                        </div>
+
                         <button
                           onClick={() => toggleExpand(request.id)}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
                         >
-                          <span>
-                            {isExpanded ? "Ocultar detalles" : "Ver detalles"}
-                          </span>
+                          <span>{isExpanded ? "Ocultar detalles" : "Ver detalles"}</span>
+
                           <svg
                             className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"
                               }`}
@@ -233,7 +305,6 @@ export function CoordinatorRequestsSection() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
-
                       </div>
                       {isExpanded && (
                         <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
@@ -277,16 +348,22 @@ export function CoordinatorRequestsSection() {
                                 {request.summary}
                               </p>
                             </div>
+
+                            {/* Observaciones del coordinador: se muestran solo cuando existe adjustmentNotes,
+                                es decir, cuando el coordinador ya confirmó un "Solicitar ajustes" previo. */}
+                            {request.adjustmentNotes && (
+                              <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 md:col-span-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">
+                                  Observaciones solicitadas
+                                </p>
+                                <p className="mt-2 text-sm leading-relaxed text-orange-800">
+                                  {request.adjustmentNotes}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                            <button
-                              onClick={() => setRequestInReview(request.id)}
-                              className="rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-                            >
-                              Marcar en revisión
-                            </button>
-
                             <button
                               onClick={() => approveRequest(request.id)}
                               className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
@@ -294,13 +371,70 @@ export function CoordinatorRequestsSection() {
                               Aprobar
                             </button>
 
+                            {/* Solicitar ajustes: abre el chatbox obligatorio.
+                                No cambia el estado hasta que el coordinador confirme con observaciones. */}
                             <button
-                              onClick={() => rejectRequest(request.id)}
-                              className="rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                              onClick={() => openAdjustmentBox(request.id)}
+                              className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
                             >
-                              Rechazar
+                              Solicitar ajustes
                             </button>
                           </div>
+
+                          {/* --- CHATBOX DE AJUSTES ---
+                              Se muestra solo cuando el coordinador hace clic en "Solicitar ajustes".
+                              El coordinador debe escribir observaciones antes de confirmar. */}
+                          {adjustmentBoxId === request.id && (
+                            <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
+                              <p className="mb-2 text-sm font-semibold text-orange-800">
+                                Observaciones para el GIF
+                              </p>
+                              <p className="mb-3 text-xs text-orange-600">
+                                Explica qué debe corregir el GIF. Este texto será visible en su panel.
+                              </p>
+
+                              {/* Textarea de observaciones */}
+                              <textarea
+                                value={adjustmentNotes}
+                                onChange={(e) => {
+                                  setAdjustmentNotes(e.target.value);
+                                  // Limpia el error en cuanto el coordinador empieza a escribir.
+                                  if (adjustmentError) setAdjustmentError("");
+                                }}
+                                rows={4}
+                                placeholder="Describe las correcciones necesarias..."
+                                className="w-full resize-none rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-300/40"
+                              />
+
+                              {/* Mensaje de validación: aparece solo si se intenta confirmar sin texto */}
+                              {adjustmentError && (
+                                <p className="mt-2 text-xs font-medium text-red-600">
+                                  {adjustmentError}
+                                </p>
+                              )}
+
+                              {/* Botones del chatbox */}
+                              <div className="mt-3 flex justify-end gap-2">
+                                {/* Cancelar: cierra el chatbox sin cambiar el estado */}
+                                <button
+                                  type="button"
+                                  onClick={cancelAdjustmentBox}
+                                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                >
+                                  Cancelar
+                                </button>
+
+                                {/* Confirmar: valida el textarea y llama a rejectRequest */}
+                                <button
+                                  type="button"
+                                  onClick={() => confirmAdjustments(request.id)}
+                                  className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
+                                >
+                                  Confirmar ajustes
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </article>

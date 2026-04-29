@@ -30,11 +30,33 @@ export function DriveSubmissionSection() {
     const [view, setView] = useState<"new" | "list">("new");
     const createRequest = useRequestsStore((state) => state.createRequest);
     const requests = useRequestsStore((state) => state.requests);
+    // Acción para que el GIF notifique que corrigió una solicitud rechazada.
+    const notifyCorrectionsReady = useRequestsStore((state) => state.notifyCorrectionsReady);
     const { register, handleSubmit, reset } = useForm<SubmissionForm>({
         resolver: zodResolver(schema),
     });
     const [semester, setSemester] = useState("");
     const [program, setProgram] = useState("");
+    const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+    const [expandedSummaryId, setExpandedSummaryId] = useState<string | null>(null);
+
+    // Estilos visuales por estado (misma paleta que el panel de coordinador).
+    // "rechazada" usa naranja porque representa ajustes pendientes, no un rechazo definitivo.
+    const statusStyles: Record<string, string> = {
+        pendiente: "bg-amber-50 text-amber-700 border border-amber-200",
+        en_revision: "bg-blue-50 text-blue-700 border border-blue-200",
+        aprobada: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+        rechazada: "bg-orange-50 text-orange-700 border border-orange-200",
+    };
+
+    // Etiquetas legibles para el GIF.
+    // "rechazada" se muestra como "Requiere ajustes" para que el GIF entienda que debe corregir.
+    const statusLabel: Record<string, string> = {
+        pendiente: "Pendiente",
+        en_revision: "En revisión",
+        aprobada: "Aprobada",
+        rechazada: "Requiere ajustes",
+    };
 
     const myRequests = requests.filter((request) => request.createdByRole === "gif");
 
@@ -138,7 +160,7 @@ export function DriveSubmissionSection() {
                                     </Select>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label className="mb-2 block text-sm font-semibold text-slate-700">
                                         Semestre
@@ -257,39 +279,150 @@ export function DriveSubmissionSection() {
                             </p>
                         ) : (
                             <div className="grid gap-3">
-                                {myRequests.map((request) => (
-                                    <article
-                                        key={request.id}
-                                        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                                    >
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                                                {request.id}
-                                            </p>
-                                            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                                                {request.status.replace("_", " ")}
-                                            </span>
-                                        </div>
-                                        <h3 className="mt-2 text-base font-semibold text-slate-800">
-                                            {request.subject}
-                                        </h3>
-                                        <p className="mt-1 text-sm text-slate-600">
-                                            Nivel/Tipo: {request.level}
-                                        </p>
-                                        <a
-                                            href={request.source}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="mt-1 inline-block text-sm text-blue-600 hover:underline"
+                                {myRequests.map((request) => {
+                                    const isExpanded = expandedRequestId === request.id;
+                                    return (
+                                        <article
+                                            key={request.id}
+                                            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
                                         >
-                                            Ver Google Drive
-                                        </a>
-                                        <p className="mt-2 text-sm text-slate-600">{request.summary}</p>
-                                        <p className="mt-2 text-xs text-slate-400">
-                                            Creada: {new Date(request.createdAt).toLocaleString()}
-                                        </p>
-                                    </article>
-                                ))}
+                                            {/* Resumen inicial de la solicitud */}
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <h3 className="text-base font-semibold text-slate-800">
+                                                        {request.subject}
+                                                    </h3>
+
+                                                    <p className="mt-1 text-xs text-slate-400">
+                                                        Creada: {new Date(request.createdAt).toLocaleString()}
+                                                    </p>
+                                                </div>
+
+                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}>
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                                    {statusLabel[request.status]}
+                                                </span>
+                                            </div>
+
+                                            {/* Botón para desplegar información */}
+                                            <div className="mt-4 flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setExpandedRequestId((currentId) =>
+                                                            currentId === request.id ? null : request.id
+                                                        )
+                                                    }
+                                                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+                                                >
+                                                    <span>{isExpanded ? "Ocultar información" : "Ver información"}</span>
+
+                                                    <svg
+                                                        className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"
+                                                            }`}
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth="2"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {/* Información desplegada */}
+                                            {isExpanded && (
+                                                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                                                    <div className="grid gap-3 md:grid-cols-2">
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Nivel/Tipo
+                                                            </p>
+                                                            <p className="mt-1 text-sm font-medium text-slate-700">
+                                                                {request.level}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Programa
+                                                            </p>
+                                                            <p className="mt-1 text-sm font-medium text-slate-700">
+                                                                {request.program}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Semestre
+                                                            </p>
+                                                            <p className="mt-1 text-sm font-medium text-slate-700">
+                                                                {request.semester}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Material
+                                                            </p>
+
+                                                            <a
+                                                                href={request.source}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                                                            >
+                                                                Ver Google Drive
+                                                                <span aria-hidden="true">↗</span>
+                                                            </a>
+                                                        </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Descripción
+                                                            </p>
+
+                                                            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                                                                {request.summary}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Bloque de observaciones del coordinador:
+                                                        Se muestra cuando la solicitud requiere ajustes.
+                                                        El GIF ve aquí qué debe corregir antes de reenviar. */}
+                                                    {request.status === "rechazada" && (
+                                                        <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
+                                                            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
+                                                                Observaciones del coordinador
+                                                            </p>
+
+                                                            {/* Muestra las observaciones guardadas, o un aviso si no hay */}
+                                                            {request.adjustmentNotes ? (
+                                                                <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                                                                    {request.adjustmentNotes}
+                                                                </p>
+                                                            ) : (
+                                                                <p className="mt-1 text-sm italic text-slate-400">
+                                                                    El coordinador no dejó observaciones adicionales.
+                                                                </p>
+                                                            )}
+
+                                                            {/* Botón para que el GIF notifique que ya hizo las correcciones */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => notifyCorrectionsReady(request.id)}
+                                                                className="mt-4 inline-flex items-center gap-2 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 active:scale-95"
+                                                            >
+                                                                Notificar correcciones
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </article>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

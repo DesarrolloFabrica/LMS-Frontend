@@ -21,8 +21,14 @@ interface RequestsState {
   setRequestInReview: (id: string) => void;
   /** Marca una solicitud como "aprobada". */
   approveRequest: (id: string) => void;
-  /** Marca una solicitud como "rechazada". */
-  rejectRequest: (id: string) => void;
+  /** Marca una solicitud como "rechazada" (requiere ajustes) y guarda las observaciones del coordinador. */
+  rejectRequest: (id: string, adjustmentNotes: string) => void;
+  /**
+   * Acción del GIF: notifica que corrigió la solicitud rechazada.
+   * Cambia el estado de "rechazada" → "en_revision" para que el coordinador
+   * pueda volver a revisarla en su bandeja.
+   */
+  notifyCorrectionsReady: (id: string) => void;
 }
 
 const createRequestId = () => `REQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -62,10 +68,21 @@ export const useRequestsStore = create<RequestsState>()(
             request.id === id ? { ...request, status: "aprobada" } : request,
           ),
         })),
-      rejectRequest: (id) =>
+      // Guarda las observaciones junto al estado para que el GIF pueda ver qué debe corregir.
+      rejectRequest: (id, adjustmentNotes) =>
         set((state) => ({
           requests: state.requests.map((request) =>
-            request.id === id ? { ...request, status: "rechazada" } : request,
+            request.id === id
+              ? { ...request, status: "rechazada", adjustmentNotes }
+              : request,
+          ),
+        })),
+      // El GIF notifica que hizo correcciones → la solicitud vuelve a "en_revision"
+      // para que el coordinador la encuentre de nuevo en su bandeja de revisión.
+      notifyCorrectionsReady: (id) =>
+        set((state) => ({
+          requests: state.requests.map((request) =>
+            request.id === id ? { ...request, status: "en_revision" } : request,
           ),
         })),
     }),

@@ -1,4 +1,4 @@
-﻿export type Status = "Submitted" | "In Review" | "Requires Finalization" | "Completed";
+export type Status = "Submitted" | "In Review" | "Requires Finalization" | "Completed";
 
 export interface ProcessItem {
   id: string;
@@ -59,6 +59,8 @@ export interface LmsRequest {
   createdByName?: string;
   semester: string;
   program: string;
+  /** Observaciones del coordinador al solicitar ajustes. Solo presente cuando status === "rechazada". */
+  adjustmentNotes?: string;
 }
 
 export interface UserProfile {
