@@ -44,7 +44,6 @@ export function DriveSubmissionSection() {
     // "rechazada" usa naranja porque representa ajustes pendientes, no un rechazo definitivo.
     const statusStyles: Record<string, string> = {
         pendiente: "bg-amber-50 text-amber-700 border border-amber-200",
-        en_revision: "bg-blue-50 text-blue-700 border border-blue-200",
         aprobada: "bg-emerald-50 text-emerald-700 border border-emerald-200",
         rechazada: "bg-orange-50 text-orange-700 border border-orange-200",
     };
@@ -53,7 +52,6 @@ export function DriveSubmissionSection() {
     // "rechazada" se muestra como "Requiere ajustes" para que el GIF entienda que debe corregir.
     const statusLabel: Record<string, string> = {
         pendiente: "Pendiente",
-        en_revision: "En revisión",
         aprobada: "Aprobada",
         rechazada: "Requiere ajustes",
     };

@@ -40,7 +40,6 @@ export function CoordinatorRequestsSection() {
 
   const statusStyles: Record<RequestStatus, string> = {
     pendiente: "bg-amber-50 text-amber-700 border border-amber-200",
-    en_revision: "bg-blue-50 text-blue-700 border border-blue-200",
     aprobada: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     // "rechazada" significa que el coordinador pidió ajustes al GIF.
     // No es un rechazo definitivo: el GIF puede corregir y reenviar.
@@ -50,9 +49,8 @@ export function CoordinatorRequestsSection() {
 
   const statusLabel: Record<RequestStatus, string> = {
     pendiente: "Pendiente",
-    en_revision: "En revisión",
     aprobada: "Aprobada",
-    // "rechazada" se muestra al GIF como "Requiere ajustes" para indicar que
+    // "rechazada" se muestra como "Requiere ajustes" para indicar que
     // debe hacer correcciones y notificar al coordinador.
     rechazada: "Requiere ajustes",
   };
@@ -190,7 +188,7 @@ export function CoordinatorRequestsSection() {
                         <option value="todas">Todas</option>
                         <option value="pendiente">Pendiente</option>
                         <option value="aprobada">Aprobada</option>
-                        <option value="rechazada">Rechazada</option>
+                        <option value="rechazada">Requiere ajustes</option>
                       </select>
                     </div>
 
@@ -249,7 +247,23 @@ export function CoordinatorRequestsSection() {
                   return (
                     <article
                       key={request.id}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      onClick={() => toggleExpand(request.id)}
+                      className={`
+                       relative cursor-pointer overflow-hidden
+                       rounded-2xl border border-slate-200 bg-white p-5
+                       shadow-sm
+                   
+                       transition-all duration-200 ease-out
+                       hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg
+                   
+                       before:absolute before:left-0 before:top-0 before:h-full before:w-1
+                       before:rounded-l-2xl before:transition-all before:duration-200
+                       hover:before:w-1.5
+                   
+                       ${request.status === "pendiente" && "before:bg-amber-400"}
+                       ${request.status === "rechazada" && "before:bg-orange-500"}
+                       ${request.status === "aprobada" && "before:bg-emerald-500"}
+                     `}
                     >
                       {/* 🔹 HEADER RESUMIDO */}
                       {/* Header principal de la tarjeta */}
@@ -289,7 +303,11 @@ export function CoordinatorRequestsSection() {
                         </div>
 
                         <button
-                          onClick={() => toggleExpand(request.id)}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleExpand(request.id);
+                          }}
                           className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
                         >
                           <span>{isExpanded ? "Ocultar detalles" : "Ver detalles"}</span>
@@ -306,137 +324,150 @@ export function CoordinatorRequestsSection() {
                           </svg>
                         </button>
                       </div>
-                      {isExpanded && (
-                        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Drive
-                              </p>
+                      <div
+                        className={`
+                        overflow-hidden transition-all duration-300 ease-out
+                        ${isExpanded ? "mt-5 max-h-[1000px] opacity-100" : "mt-0 max-h-0 opacity-0"}
+                      `}
+                      >
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Drive
+                            </p>
 
-                              <a
-                                href={request.source}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-                              >
-                                Ver enlace
-                                <span aria-hidden="true">↗</span>
-                              </a>
-                            </div>
+                            <a
+                              href={request.source}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                            >
+                              Ver enlace
+                              <span aria-hidden="true">↗</span>
+                            </a>
+                          </div>
 
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Creación
-                              </p>
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Creación
+                            </p>
 
-                              <p className="mt-2 text-sm font-medium text-slate-700">
-                                {request.createdAt}
-                              </p>
+                            <p className="mt-2 text-sm font-medium text-slate-700">
+                              {request.createdAt}
+                            </p>
 
-                              <p className="mt-1 text-xs text-slate-500">
-                                {request.createdByName} · {request.createdByRole}
-                              </p>
-                            </div>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {request.createdByName} · {request.createdByRole}
+                            </p>
+                          </div>
 
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Descripción
-                              </p>
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Descripción
+                            </p>
 
-                              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                                {request.summary}
-                              </p>
-                            </div>
+                            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                              {request.summary}
+                            </p>
+                          </div>
 
-                            {/* Observaciones del coordinador: se muestran solo cuando existe adjustmentNotes,
+                          {/* Observaciones del coordinador: se muestran solo cuando existe adjustmentNotes,
                                 es decir, cuando el coordinador ya confirmó un "Solicitar ajustes" previo. */}
-                            {request.adjustmentNotes && (
-                              <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 md:col-span-2">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">
-                                  Observaciones solicitadas
-                                </p>
-                                <p className="mt-2 text-sm leading-relaxed text-orange-800">
-                                  {request.adjustmentNotes}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                            <button
-                              onClick={() => approveRequest(request.id)}
-                              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                            >
-                              Aprobar
-                            </button>
-
-                            {/* Solicitar ajustes: abre el chatbox obligatorio.
-                                No cambia el estado hasta que el coordinador confirme con observaciones. */}
-                            <button
-                              onClick={() => openAdjustmentBox(request.id)}
-                              className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
-                            >
-                              Solicitar ajustes
-                            </button>
-                          </div>
-
-                          {/* --- CHATBOX DE AJUSTES ---
-                              Se muestra solo cuando el coordinador hace clic en "Solicitar ajustes".
-                              El coordinador debe escribir observaciones antes de confirmar. */}
-                          {adjustmentBoxId === request.id && (
-                            <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
-                              <p className="mb-2 text-sm font-semibold text-orange-800">
-                                Observaciones para el GIF
+                          {request.adjustmentNotes && (
+                            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 md:col-span-2">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">
+                                Observaciones solicitadas
                               </p>
-                              <p className="mb-3 text-xs text-orange-600">
-                                Explica qué debe corregir el GIF. Este texto será visible en su panel.
+                              <p className="mt-2 text-sm leading-relaxed text-orange-800">
+                                {request.adjustmentNotes}
                               </p>
-
-                              {/* Textarea de observaciones */}
-                              <textarea
-                                value={adjustmentNotes}
-                                onChange={(e) => {
-                                  setAdjustmentNotes(e.target.value);
-                                  // Limpia el error en cuanto el coordinador empieza a escribir.
-                                  if (adjustmentError) setAdjustmentError("");
-                                }}
-                                rows={4}
-                                placeholder="Describe las correcciones necesarias..."
-                                className="w-full resize-none rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-300/40"
-                              />
-
-                              {/* Mensaje de validación: aparece solo si se intenta confirmar sin texto */}
-                              {adjustmentError && (
-                                <p className="mt-2 text-xs font-medium text-red-600">
-                                  {adjustmentError}
-                                </p>
-                              )}
-
-                              {/* Botones del chatbox */}
-                              <div className="mt-3 flex justify-end gap-2">
-                                {/* Cancelar: cierra el chatbox sin cambiar el estado */}
-                                <button
-                                  type="button"
-                                  onClick={cancelAdjustmentBox}
-                                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                                >
-                                  Cancelar
-                                </button>
-
-                                {/* Confirmar: valida el textarea y llama a rejectRequest */}
-                                <button
-                                  type="button"
-                                  onClick={() => confirmAdjustments(request.id)}
-                                  className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
-                                >
-                                  Confirmar ajustes
-                                </button>
-                              </div>
                             </div>
                           )}
                         </div>
-                      )}
+
+                        <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation(); approveRequest(request.id)
+                            }}
+                            className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                          >
+                            Aprobar
+                          </button>
+
+                          {/* Solicitar ajustes: abre el chatbox obligatorio.
+                                No cambia el estado hasta que el coordinador confirme con observaciones. */}
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation(); openAdjustmentBox(request.id)
+                            }}
+                            className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
+                          >
+                            Solicitar ajustes
+                          </button>
+                        </div>
+
+                        {/* --- CHATBOX DE AJUSTES ---
+                              Se muestra solo cuando el coordinador hace clic en "Solicitar ajustes".
+                              El coordinador debe escribir observaciones antes de confirmar. */}
+                        {adjustmentBoxId === request.id && (
+                          <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
+                            <p className="mb-2 text-sm font-semibold text-orange-800">
+                              Observaciones para el GIF
+                            </p>
+                            <p className="mb-3 text-xs text-orange-600">
+                              Explica qué debe corregir el GIF. Este texto será visible en su panel.
+                            </p>
+
+                            {/* Textarea de observaciones */}
+                            <textarea
+                              value={adjustmentNotes}
+                              onChange={(e) => {
+                                setAdjustmentNotes(e.target.value);
+                                // Limpia el error en cuanto el coordinador empieza a escribir.
+                                if (adjustmentError) setAdjustmentError("");
+                              }}
+                              rows={4}
+                              placeholder="Describe las correcciones necesarias..."
+                              className="w-full resize-none rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-300/40"
+                            />
+
+                            {/* Mensaje de validación: aparece solo si se intenta confirmar sin texto */}
+                            {adjustmentError && (
+                              <p className="mt-2 text-xs font-medium text-red-600">
+                                {adjustmentError}
+                              </p>
+                            )}
+
+                            {/* Botones del chatbox */}
+                            <div className="mt-3 flex justify-end gap-2">
+                              {/* Cancelar: cierra el chatbox sin cambiar el estado */}
+                              <button
+                                type="button"
+                                onClick={cancelAdjustmentBox}
+                                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                              >
+                                Cancelar
+                              </button>
+
+                              {/* Confirmar: valida el textarea y llama a rejectRequest */}
+                              <button
+                                type="button"
+                                onClick={() => confirmAdjustments(request.id)}
+                                className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
+                              >
+                                Confirmar ajustes
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                        </div>
+                      </div>
+                      
+                    
                     </article>
 
                   );

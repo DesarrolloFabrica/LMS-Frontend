@@ -15,18 +15,15 @@ interface CreateRequestInput {
 interface RequestsState {
   /** Estado compartido entre GIF y Coordinador. */
   requests: LmsRequest[];
-  /** Crea una nueva solicitud con metadatos mínimos de trazabilidad. */
+  /** Crea una nueva solicitud con estado inicial "pendiente". */
   createRequest: (input: CreateRequestInput) => void;
-  /** Marca una solicitud como "en_revision". */
-  setRequestInReview: (id: string) => void;
   /** Marca una solicitud como "aprobada". */
   approveRequest: (id: string) => void;
   /** Marca una solicitud como "rechazada" (requiere ajustes) y guarda las observaciones del coordinador. */
   rejectRequest: (id: string, adjustmentNotes: string) => void;
   /**
    * Acción del GIF: notifica que corrigió la solicitud rechazada.
-   * Cambia el estado de "rechazada" → "en_revision" para que el coordinador
-   * pueda volver a revisarla en su bandeja.
+   * Vuelve la solicitud a "pendiente" para que el coordinador la revise de nuevo.
    */
   notifyCorrectionsReady: (id: string) => void;
 }
@@ -56,12 +53,6 @@ export const useRequestsStore = create<RequestsState>()(
             ...state.requests,
           ],
         })),
-      setRequestInReview: (id) =>
-        set((state) => ({
-          requests: state.requests.map((request) =>
-            request.id === id ? { ...request, status: "en_revision" } : request,
-          ),
-        })),
       approveRequest: (id) =>
         set((state) => ({
           requests: state.requests.map((request) =>
@@ -77,12 +68,12 @@ export const useRequestsStore = create<RequestsState>()(
               : request,
           ),
         })),
-      // El GIF notifica que hizo correcciones → la solicitud vuelve a "en_revision"
-      // para que el coordinador la encuentre de nuevo en su bandeja de revisión.
+      // El GIF notifica que hizo correcciones → la solicitud vuelve a "pendiente"
+      // para que el coordinador la encuentre de nuevo en su bandeja.
       notifyCorrectionsReady: (id) =>
         set((state) => ({
           requests: state.requests.map((request) =>
-            request.id === id ? { ...request, status: "en_revision" } : request,
+            request.id === id ? { ...request, status: "pendiente" } : request,
           ),
         })),
     }),
@@ -90,6 +81,22 @@ export const useRequestsStore = create<RequestsState>()(
       name: "carga-lms-requests",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ requests: state.requests }),
+      // Migración automática: normaliza datos persistidos en localStorage.
+      // Si existen solicitudes con el estado antiguo "en_revision", se convierten
+      // a "pendiente" para mantener consistencia con el sistema de estados actual.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const hasLegacyStatus = state.requests.some(
+          (r) => (r.status as string) === "en_revision",
+        );
+        if (hasLegacyStatus) {
+          state.requests = state.requests.map((r) =>
+            (r.status as string) === "en_revision"
+              ? { ...r, status: "pendiente" }
+              : r,
+          );
+        }
+      },
     },
   ),
 );
