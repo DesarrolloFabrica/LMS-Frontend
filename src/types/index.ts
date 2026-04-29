@@ -57,6 +57,8 @@ export interface LmsRequest {
   createdAt: string;
   createdByRole: UserRole;
   createdByName?: string;
+  semester: string;
+  program: string;
 }
 
 export interface UserProfile {

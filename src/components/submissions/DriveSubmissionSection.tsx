@@ -21,7 +21,7 @@ const schema = z.object({
     subject: z.string().min(1, "La materia es obligatoria"),
     level: z.string().min(1, "El nivel o tipo es obligatorio"),
     summary: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-    source: z.url("Debe ser una URL válida"),
+    source: z.string().url("Debe ser una URL válida (ej: https://drive.google.com/...)"),
 });
 
 type SubmissionForm = z.infer<typeof schema>;
@@ -33,6 +33,8 @@ export function DriveSubmissionSection() {
     const { register, handleSubmit, reset } = useForm<SubmissionForm>({
         resolver: zodResolver(schema),
     });
+    const [semester, setSemester] = useState("");
+    const [program, setProgram] = useState("");
 
     const myRequests = requests.filter((request) => request.createdByRole === "gif");
 
@@ -46,6 +48,8 @@ export function DriveSubmissionSection() {
             level: data.level,
             source: data.source,
             summary: data.summary,
+            semester: semester,
+            program: program,
         });
         toast.success("Solicitud enviada");
         reset();
@@ -132,6 +136,49 @@ export function DriveSubmissionSection() {
                                         <option value="curso-corto">Curso corto</option>
                                         <option value="otro">Otro</option>
                                     </Select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                                        Semestre
+                                    </label>
+
+                                    <select
+                                        value={semester}
+                                        onChange={(event) => setSemester(event.target.value)}
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-400"
+                                        required
+                                    >
+                                        <option value="">Selecciona un semestre</option>
+                                        <option value="2024-1">2024-1</option>
+                                        <option value="2024-2">2024-2</option>
+                                        <option value="2025-1">2025-1</option>
+                                        <option value="2025-2">2025-2</option>
+                                    </select>
+                                </div>
+
+                                {/* Campo para seleccionar programa */}
+                                <div>
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                                        Programa
+                                    </label>
+
+                                    <select
+                                        value={program}
+                                        onChange={(event) => setProgram(event.target.value)}
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-400"
+                                        required
+                                    >
+                                        <option value="">Selecciona un programa</option>
+                                        <option value="Administración de Empresas">
+                                            Administración de Empresas
+                                        </option>
+                                        <option value="Ingeniería de Sistemas">
+                                            Ingeniería de Sistemas
+                                        </option>
+                                        <option value="Diseño Gráfico">Diseño Gráfico</option>
+                                    </select>
                                 </div>
                             </div>
 

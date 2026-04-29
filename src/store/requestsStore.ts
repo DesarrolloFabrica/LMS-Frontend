@@ -7,6 +7,8 @@ interface CreateRequestInput {
   level: string;
   source: string;
   summary: string;
+  semester: string;
+  program: string;
   createdByName?: string;
 }
 
@@ -38,6 +40,8 @@ export const useRequestsStore = create<RequestsState>()(
               level: input.level,
               source: input.source,
               summary: input.summary,
+              semester: input.semester,
+              program: input.program,
               status: "pendiente",
               createdAt: new Date().toISOString(),
               createdByRole: "gif",
