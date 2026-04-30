@@ -1,16 +1,23 @@
-import type { RequestStatus } from "@/types";
+﻿import type { ApiProgram, ApiSemester, RequestStatus } from "@/types";
+import { catalogsApi } from "@/lib/api";
 import { useRequestsStore } from "@/store/requestsStore";
-import { useState } from "react";
-export function CoordinatorRequestsSection() {
+import { useAuthStore } from "@/store/authStore";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
+export function CoordinatorRequestsSection() {
   const requests = useRequestsStore((state) => state.requests);
+  const loadCoordinatorRequests = useRequestsStore((state) => state.loadCoordinatorRequests);
   const approveRequest = useRequestsStore((state) => state.approveRequest);
   const rejectRequest = useRequestsStore((state) => state.rejectRequest);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "todas">("todas");
   const [showFilters, setShowFilters] = useState(false);
   const [semesterFilter, setSemesterFilter] = useState("todos");
   const [programFilter, setProgramFilter] = useState("todos");
+  const [semesters, setSemesters] = useState<ApiSemester[]>([]);
+  const [programs, setPrograms] = useState<ApiProgram[]>([]);
 
   // --- Estado del chatbox de ajustes ---
   // adjustmentBoxId: ID de la solicitud que tiene el chatbox abierto (null = ninguno).
@@ -19,6 +26,13 @@ export function CoordinatorRequestsSection() {
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   // adjustmentError: mensaje de validación cuando el coordinador intenta confirmar sin texto.
   const [adjustmentError, setAdjustmentError] = useState("");
+
+  useEffect(() => {
+    if (!accessToken) return;
+    void loadCoordinatorRequests().catch((error) => toast.error(readError(error)));
+    void catalogsApi.semesters().then(setSemesters).catch((error) => toast.error(readError(error)));
+    void catalogsApi.programs().then(setPrograms).catch((error) => toast.error(readError(error)));
+  }, [accessToken, loadCoordinatorRequests]);
 
 
   // Aplica los tres filtros al mismo tiempo:
@@ -40,21 +54,18 @@ export function CoordinatorRequestsSection() {
 
   const statusStyles: Record<RequestStatus, string> = {
     pendiente: "bg-amber-50 text-amber-700 border border-amber-200",
-    en_revision: "bg-blue-50 text-blue-700 border border-blue-200",
-    aprobada: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    // "rechazada" significa que el coordinador pidió ajustes al GIF.
-    // No es un rechazo definitivo: el GIF puede corregir y reenviar.
-    rechazada: "bg-orange-50 text-orange-700 border border-orange-200",
+    aprobado: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    // "requiere_ajustes" no es rechazo definitivo: Fabrica puede corregir y reenviar.
+    requiere_ajustes: "bg-orange-50 text-orange-700 border border-orange-200",
   };
 
 
   const statusLabel: Record<RequestStatus, string> = {
-    pendiente: "Pendiente",
-    en_revision: "En revisión",
-    aprobada: "Aprobada",
-    // "rechazada" se muestra al GIF como "Requiere ajustes" para indicar que
+    pendiente: "PENDIENTE",
+    aprobado: "APROBADO",
+    // "requiere_ajustes" se muestra como "REQUIERE AJUSTES" para indicar que
     // debe hacer correcciones y notificar al coordinador.
-    rechazada: "Requiere ajustes",
+    requiere_ajustes: "REQUIERE AJUSTES",
   };
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -95,43 +106,32 @@ export function CoordinatorRequestsSection() {
       setAdjustmentError("Debes escribir una observación antes de solicitar ajustes.");
       return;
     }
-    rejectRequest(requestId, adjustmentNotes.trim());
-    setAdjustmentBoxId(null);
-    setAdjustmentNotes("");
-    setAdjustmentError("");
+    void rejectRequest(requestId, adjustmentNotes.trim())
+      .then(() => {
+        setAdjustmentBoxId(null);
+        setAdjustmentNotes("");
+        setAdjustmentError("");
+      })
+      .catch((error) => toast.error(readError(error)));
   }
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-[#FAFAFA]">
-      {/* Fondo visual de la sección */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-[10%] -top-[10%] h-[40rem] w-[40rem] rounded-full bg-blue-300/20 blur-[120px]" />
         <div className="absolute -right-[5%] top-[20%] h-[35rem] w-[35rem] rounded-full bg-indigo-300/20 blur-[100px]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:3rem_3rem]" />
       </div>
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-12 pt-28 sm:px-6 sm:pt-32">
-        {/* Encabezado de la sección */}
         <div className="mb-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600">
-            Panel de coordinación
-          </p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
-            Solicitudes recibidas
-          </h2>
-
-
-
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600">Panel LMS</p>
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Solicitudes recibidas</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">
 
             Aquí aparecerán las solicitudes creadas por los GIF para que el coordinador pueda revisarlas, hacer seguimiento y gestionar su estado.
 
           </p>
-
         </div>
-
-
-
-        {/* Lista real de solicitudes compartidas por Zustand entre GIF y Coordinador */}
 
         <div className="space-y-5">
 
@@ -188,9 +188,9 @@ export function CoordinatorRequestsSection() {
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
                       >
                         <option value="todas">Todas</option>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="aprobada">Aprobada</option>
-                        <option value="rechazada">Rechazada</option>
+                        <option value="pendiente">PENDIENTE</option>
+                        <option value="aprobado">APROBADO</option>
+                        <option value="requiere_ajustes">REQUIERE AJUSTES</option>
                       </select>
                     </div>
 
@@ -205,10 +205,11 @@ export function CoordinatorRequestsSection() {
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
                       >
                         <option value="todos">Todos</option>
-                        <option value="2024-1">2024-1</option>
-                        <option value="2024-2">2024-2</option>
-                        <option value="2025-1">2025-1</option>
-                        <option value="2025-2">2025-2</option>
+                        {semesters.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -223,20 +224,18 @@ export function CoordinatorRequestsSection() {
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
                       >
                         <option value="todos">Todos</option>
-                        <option value="Administración de Empresas">
-                          Administración de Empresas
-                        </option>
-                        <option value="Ingeniería de Sistemas">
-                          Ingeniería de Sistemas
-                        </option>
-                        <option value="Diseño Gráfico">Diseño Gráfico</option>
+                        {programs.map((item) => (
+                          <option key={item.code} value={item.name}>
+                            {item.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
                 )}
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-                <div className="mb-6">
+            <div className="mb-6">
                   <h2 className="text-lg font-semibold text-slate-800">
                     Solicitudes recibidas
                   </h2>
@@ -251,7 +250,7 @@ export function CoordinatorRequestsSection() {
                       key={request.id}
                       className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
-                      {/* 🔹 HEADER RESUMIDO */}
+                      {/* Header resumido */}
                       {/* Header principal de la tarjeta */}
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
@@ -364,21 +363,27 @@ export function CoordinatorRequestsSection() {
                           </div>
 
                           <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                            <button
-                              onClick={() => approveRequest(request.id)}
-                              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                            >
-                              Aprobar
-                            </button>
+                            {request.status === "pendiente" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    void approveRequest(request.id).catch((error) => toast.error(readError(error)))
+                                  }
+                                  className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                >
+                                  Aprobar
+                                </button>
 
-                            {/* Solicitar ajustes: abre el chatbox obligatorio.
-                                No cambia el estado hasta que el coordinador confirme con observaciones. */}
-                            <button
-                              onClick={() => openAdjustmentBox(request.id)}
-                              className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
-                            >
-                              Solicitar ajustes
-                            </button>
+                                {/* Solicitar ajustes: abre el chatbox obligatorio.
+                                    No cambia el estado hasta que el coordinador confirme con observaciones. */}
+                                <button
+                                  onClick={() => openAdjustmentBox(request.id)}
+                                  className="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-100"
+                                >
+                                  Solicitar ajustes
+                                </button>
+                              </>
+                            )}
                           </div>
 
                           {/* --- CHATBOX DE AJUSTES ---
@@ -457,3 +462,8 @@ export function CoordinatorRequestsSection() {
   );
 
 }
+
+function readError(error: unknown) {
+  return error instanceof Error ? error.message : "No fue posible conectar con el backend.";
+}
+

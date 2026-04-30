@@ -1,13 +1,12 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ExternalLink, Database, Search, Download, FileCheck, User, Calendar } from "lucide-react";
+import { ExternalLink, Database, Download, FileCheck, User, Calendar } from "lucide-react";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
 import { MainContentContainer } from "@/components/layout/MainContentContainer";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { StatusPill } from "@/components/shared/StatusPill";
-import { motionDuration, motionEase } from "@/lib/animations";
+import { motionEase } from "@/lib/animations";
 import { historyItems } from "@/data/historyItems";
-import { cn } from "@/lib/cn";
 
 export function HistoryPage() {
   const reducedMotion = useReducedMotion() === true;

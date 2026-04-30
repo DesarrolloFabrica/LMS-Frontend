@@ -1,11 +1,10 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ChevronRight, Filter, Search, ListFilter, Activity } from "lucide-react";
+import { ChevronRight, ListFilter, Activity } from "lucide-react";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
 import { MainContentContainer } from "@/components/layout/MainContentContainer";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { StatusPill } from "@/components/shared/StatusPill";
-import { motionDuration, motionEase } from "@/lib/animations";
 import { PRIORITY_STYLES } from "@/lib/constants";
 import { reviewQueue } from "@/data/reviewQueue";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";

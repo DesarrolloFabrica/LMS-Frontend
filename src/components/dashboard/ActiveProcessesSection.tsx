@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect} from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowRight, User, Clock, Zap, Sparkles } from "lucide-react";
+import { ArrowRight, User, Clock, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AnimatedSection } from "@/components/common/AnimatedSection";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
@@ -9,10 +9,10 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { Badge } from "@/components/ui/Badge";
 import { StatusPill } from "@/components/shared/StatusPill";
 import { DASHBOARD_SECTION_IDS } from "@/lib/dashboardSectionIds";
-import { dashboardRouteShortcuts, processes } from "@/data/mockProcesses";
+import { dashboardRouteShortcuts } from "@/data/mockProcesses";
 import { PRIORITY_STYLES } from "@/lib/constants";
 import { techCoverImageForKey } from "@/lib/techCoverImages";
-import { motionEase, motionDuration, scaleTap } from "@/lib/animations";
+import { motionEase } from "@/lib/animations";
 import type { DashboardActiveCard, Status } from "@/types";
 import { cn } from "@/lib/cn";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
@@ -24,13 +24,11 @@ function cardCoverUrl(p: DashboardActiveCard) {
 
 function pipelineProgress(status: Status) {
   switch (status) {
-    case "Submitted":
-      return 28;
-    case "In Review":
-      return 52;
-    case "Requires Finalization":
-      return 78;
-    case "Completed":
+    case "pendiente":
+      return 35;
+    case "requiere_ajustes":
+      return 65;
+    case "aprobado":
       return 100;
     default:
       return 20;
