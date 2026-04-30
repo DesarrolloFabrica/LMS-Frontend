@@ -153,6 +153,8 @@ export interface LmsRequest {
   semester: string;
   program: string;
   adjustmentNotes?: string;
+  /** Link final compartido al aprobar la solicitud. Solo presente cuando status === "aprobada". */
+  approvalLink?: string;
 }
 
 export interface UserProfile {

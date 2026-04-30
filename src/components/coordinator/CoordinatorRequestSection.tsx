@@ -26,6 +26,13 @@ export function CoordinatorRequestsSection() {
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   // adjustmentError: mensaje de validación cuando el coordinador intenta confirmar sin texto.
   const [adjustmentError, setAdjustmentError] = useState("");
+  // --- Estado del panel de aprobación ---
+  // approvalBoxId: ID de la solicitud con panel de aprobación abierto.
+  const [approvalBoxId, setApprovalBoxId] = useState<string | null>(null);
+  // approvalLink: link obligatorio que se guarda al confirmar aprobación.
+  const [approvalLink, setApprovalLink] = useState("");
+  // approvalError: mensaje de validación cuando se confirma sin link.
+  const [approvalError, setApprovalError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +82,11 @@ export function CoordinatorRequestsSection() {
       setAdjustmentNotes("");
       setAdjustmentError("");
     }
+    if (approvalBoxId === id) {
+      setApprovalBoxId(null);
+      setApprovalLink("");
+      setApprovalError("");
+    }
   }
 
   /**
@@ -82,6 +94,10 @@ export function CoordinatorRequestsSection() {
    * No cambia el estado de la solicitud hasta que el coordinador confirme.
    */
   function openAdjustmentBox(requestId: string) {
+    // Si se abre "Solicitar ajustes", se cierra el panel de aprobación.
+    setApprovalBoxId(null);
+    setApprovalLink("");
+    setApprovalError("");
     setAdjustmentBoxId(requestId);
     setAdjustmentNotes("");
     setAdjustmentError("");
@@ -115,6 +131,27 @@ export function CoordinatorRequestsSection() {
       .catch((error) => toast.error(readError(error)));
   }
 
+  function openApprovalBox(requestId: string) {
+    setAdjustmentBoxId(null);
+    setAdjustmentNotes("");
+    setAdjustmentError("");
+    setApprovalBoxId(requestId);
+    setApprovalLink("");
+    setApprovalError("");
+  }
+
+  function confirmApproval(requestId: string) {
+    const normalizedLink = approvalLink.trim();
+    if (normalizedLink === "") {
+      setApprovalError("Debes pegar un link antes de confirmar la aprobación.");
+      return;
+    }
+    approveRequest(requestId, normalizedLink);
+    setApprovalBoxId(null);
+    setApprovalLink("");
+    setApprovalError("");
+  }
+
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-[#FAFAFA]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -134,16 +171,11 @@ export function CoordinatorRequestsSection() {
         </div>
 
         <div className="space-y-5">
-
           {filteredRequests.length === 0 ? (
-
             <p className="text-sm text-slate-500">
               No hay solicitudes para este filtro.
             </p>
-
           ) : (
-
-
             <div className="grid gap-4">
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -248,7 +280,23 @@ export function CoordinatorRequestsSection() {
                   return (
                     <article
                       key={request.id}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      onClick={() => toggleExpand(request.id)}
+                      className={`
+                       relative cursor-pointer overflow-hidden
+                       rounded-2xl border border-slate-200 bg-white p-5
+                       shadow-sm
+                   
+                       transition-all duration-200 ease-out
+                       hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg
+                   
+                       before:absolute before:left-0 before:top-0 before:h-full before:w-1
+                       before:rounded-l-2xl before:transition-all before:duration-200
+                       hover:before:w-1.5
+                   
+                       ${request.status === "pendiente" && "before:bg-amber-400"}
+                       ${request.status === "rechazada" && "before:bg-orange-500"}
+                       ${request.status === "aprobada" && "before:bg-emerald-500"}
+                     `}
                     >
                       {/* Header resumido */}
                       {/* Header principal de la tarjeta */}
@@ -288,7 +336,11 @@ export function CoordinatorRequestsSection() {
                         </div>
 
                         <button
-                          onClick={() => toggleExpand(request.id)}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleExpand(request.id);
+                          }}
                           className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
                         >
                           <span>{isExpanded ? "Ocultar detalles" : "Ver detalles"}</span>
@@ -305,48 +357,68 @@ export function CoordinatorRequestsSection() {
                           </svg>
                         </button>
                       </div>
-                      {isExpanded && (
-                        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Drive
-                              </p>
+                      <div
+                        className={`
+                        overflow-hidden transition-all duration-300 ease-out
+                        ${isExpanded ? "mt-5 max-h-[1000px] opacity-100" : "mt-0 max-h-0 opacity-0"}
+                      `}
+                      >
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Drive
+                            </p>
 
-                              <a
-                                href={request.source}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-                              >
-                                Ver enlace
-                                <span aria-hidden="true">↗</span>
-                              </a>
+                            <a
+                              href={request.source}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                            >
+                              Ver enlace
+                              <span aria-hidden="true">↗</span>
+                            </a>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Creación
+                            </p>
+
+                            <p className="mt-2 text-sm font-medium text-slate-700">
+                              {request.createdAt}
+                            </p>
+
+                            <p className="mt-1 text-xs text-slate-500">
+                              {request.createdByName} · {request.createdByRole}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Descripción
+                            </p>
+
+                            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                              {request.summary}
+                            </p>
+                          </div>
+
+                          {/* Observaciones del coordinador: se muestran solo cuando existe adjustmentNotes,
+                                es decir, cuando el coordinador ya confirmó un "Solicitar ajustes" previo. */}
+                          {request.adjustmentNotes && (
+                            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 md:col-span-2">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-orange-500">
+                                Observaciones solicitadas
+                              </p>
+                              <p className="mt-2 text-sm leading-relaxed text-orange-800">
+                                {request.adjustmentNotes}
+                              </p>
                             </div>
-
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Creación
-                              </p>
-
-                              <p className="mt-2 text-sm font-medium text-slate-700">
-                                {request.createdAt}
-                              </p>
-
-                              <p className="mt-1 text-xs text-slate-500">
-                                {request.createdByName} · {request.createdByRole}
-                              </p>
-                            </div>
-
-                            <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Descripción
-                              </p>
-
-                              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                                {request.summary}
-                              </p>
-                            </div>
+                          )}
+                        </div>
 
                             {/* Observaciones del coordinador: se muestran solo cuando existe adjustmentNotes,
                                 es decir, cuando el coordinador ya confirmó un "Solicitar ajustes" previo. */}
@@ -386,62 +458,123 @@ export function CoordinatorRequestsSection() {
                             )}
                           </div>
 
-                          {/* --- CHATBOX DE AJUSTES ---
+                        {/* --- CHATBOX DE AJUSTES ---
                               Se muestra solo cuando el coordinador hace clic en "Solicitar ajustes".
                               El coordinador debe escribir observaciones antes de confirmar. */}
-                          {adjustmentBoxId === request.id && (
-                            <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
-                              <p className="mb-2 text-sm font-semibold text-orange-800">
-                                Observaciones para el GIF
+                        {adjustmentBoxId === request.id && (
+                          <div
+                            className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <p className="mb-2 text-sm font-semibold text-orange-800">
+                              Observaciones para el GIF
+                            </p>
+                            <p className="mb-3 text-xs text-orange-600">
+                              Explica qué debe corregir el GIF. Este texto será visible en su panel.
+                            </p>
+
+                            {/* Textarea de observaciones */}
+                            <textarea
+                              value={adjustmentNotes}
+                              onChange={(e) => {
+                                setAdjustmentNotes(e.target.value);
+                                // Limpia el error en cuanto el coordinador empieza a escribir.
+                                if (adjustmentError) setAdjustmentError("");
+                              }}
+                              rows={4}
+                              placeholder="Describe las correcciones necesarias..."
+                              className="w-full resize-none rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-300/40"
+                            />
+
+                            {/* Mensaje de validación: aparece solo si se intenta confirmar sin texto */}
+                            {adjustmentError && (
+                              <p className="mt-2 text-xs font-medium text-red-600">
+                                {adjustmentError}
                               </p>
-                              <p className="mb-3 text-xs text-orange-600">
-                                Explica qué debe corregir el GIF. Este texto será visible en su panel.
-                              </p>
+                            )}
 
-                              {/* Textarea de observaciones */}
-                              <textarea
-                                value={adjustmentNotes}
-                                onChange={(e) => {
-                                  setAdjustmentNotes(e.target.value);
-                                  // Limpia el error en cuanto el coordinador empieza a escribir.
-                                  if (adjustmentError) setAdjustmentError("");
-                                }}
-                                rows={4}
-                                placeholder="Describe las correcciones necesarias..."
-                                className="w-full resize-none rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-300/40"
-                              />
+                            {/* Botones del chatbox */}
+                            <div className="mt-3 flex justify-end gap-2">
+                              {/* Cancelar: cierra el chatbox sin cambiar el estado */}
+                              <button
+                                type="button"
+                                onClick={cancelAdjustmentBox}
+                                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                              >
+                                Cancelar
+                              </button>
 
-                              {/* Mensaje de validación: aparece solo si se intenta confirmar sin texto */}
-                              {adjustmentError && (
-                                <p className="mt-2 text-xs font-medium text-red-600">
-                                  {adjustmentError}
-                                </p>
-                              )}
-
-                              {/* Botones del chatbox */}
-                              <div className="mt-3 flex justify-end gap-2">
-                                {/* Cancelar: cierra el chatbox sin cambiar el estado */}
-                                <button
-                                  type="button"
-                                  onClick={cancelAdjustmentBox}
-                                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                                >
-                                  Cancelar
-                                </button>
-
-                                {/* Confirmar: valida el textarea y llama a rejectRequest */}
-                                <button
-                                  type="button"
-                                  onClick={() => confirmAdjustments(request.id)}
-                                  className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
-                                >
-                                  Confirmar ajustes
-                                </button>
-                              </div>
+                              {/* Confirmar: valida el textarea y llama a rejectRequest */}
+                              <button
+                                type="button"
+                                onClick={() => confirmAdjustments(request.id)}
+                                className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
+                              >
+                                Confirmar ajustes
+                              </button>
                             </div>
-                          )}
+                          </div>
+                        )}
+                        {/* --- PANEL DE APROBACIÓN ---
+                              Se muestra al hacer clic en "Aprobar".
+                              Requiere link antes de confirmar. */}
+                        {approvalBoxId === request.id && (
+                          <div
+                            className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <p className="mb-2 text-sm font-semibold text-emerald-800">
+                              Confirmar aprobación
+                            </p>
+                            <p className="mb-3 text-xs text-emerald-700">
+                              Pega el link final para aprobar esta solicitud.
+                            </p>
+
+                            <input
+                              type="url"
+                              value={approvalLink}
+                              onChange={(event) => {
+                                setApprovalLink(event.target.value);
+                                if (approvalError) setApprovalError("");
+                              }}
+                              placeholder="https://..."
+                              className="w-full rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-300/40"
+                              required
+                            />
+
+                            {approvalError && (
+                              <p className="mt-2 text-xs font-medium text-red-600">
+                                {approvalError}
+                              </p>
+                            )}
+
+                            <div className="mt-3 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setApprovalBoxId(null);
+                                  setApprovalLink("");
+                                  setApprovalError("");
+                                }}
+                                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => confirmApproval(request.id)}
+                                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+                              >
+                                Confirmar aprobación
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                         </div>
-                      )}
+                      </div>
+                      
+                    
                     </article>
 
                   );

@@ -27,6 +27,7 @@ const schema = z.object({
 type SubmissionForm = z.infer<typeof schema>;
 
 export function DriveSubmissionSection() {
+    type GifStatusFilter = "todas" | "pendiente" | "aprobada" | "rechazada";
     const [view, setView] = useState<"new" | "list">("new");
     const createRequest = useRequestsStore((state) => state.createRequest);
     const loadMyRequests = useRequestsStore((state) => state.loadMyRequests);
@@ -63,6 +64,21 @@ export function DriveSubmissionSection() {
     };
 
     const myRequests = requests.filter((request) => request.createdByRole === "gif");
+    const semesterOptions = Array.from(new Set(myRequests.map((request) => request.semester))).sort();
+    const programOptions = Array.from(new Set(myRequests.map((request) => request.program))).sort();
+
+    const filteredRequests = myRequests.filter((request) => {
+        const matchesStatus =
+            statusFilter === "todas" || request.status === statusFilter;
+
+        const matchesSemester =
+            semesterFilter === "todos" || request.semester === semesterFilter;
+
+        const matchesProgram =
+            programFilter === "todos" || request.program === programFilter;
+
+        return matchesStatus && matchesSemester && matchesProgram;
+    });
 
     useEffect(() => {
         if (!user) return;
@@ -301,34 +317,142 @@ export function DriveSubmissionSection() {
                                 Aún no tienes solicitudes creadas.
                             </p>
                         ) : (
-                            <div className="grid gap-3">
-                                {myRequests.map((request) => {
+                            <div className="grid gap-4">
+                                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowFilters((prev) => !prev)}
+                                        className="flex w-full items-center justify-between"
+                                    >
+                                        <div className="text-left">
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Filtros de solicitudes
+                                            </h3>
+                                            <p className="text-xs text-slate-500">
+                                                Filtra por estado, semestre o programa.
+                                            </p>
+                                        </div>
+
+                                        <svg
+                                            className={`h-5 w-5 text-slate-500 transition-transform ${showFilters ? "rotate-180" : "rotate-0"}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {showFilters && (
+                                        <div className="mt-5 grid gap-4 md:grid-cols-3">
+                                            <div>
+                                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                    Estado
+                                                </label>
+                                                <select
+                                                    value={statusFilter}
+                                                    onChange={(event) => setStatusFilter(event.target.value as GifStatusFilter)}
+                                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                                >
+                                                    <option value="todas">Todas</option>
+                                                    <option value="pendiente">Pendiente</option>
+                                                    <option value="aprobada">Aprobada</option>
+                                                    <option value="rechazada">Requiere ajustes</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                    Semestre
+                                                </label>
+                                                <select
+                                                    value={semesterFilter}
+                                                    onChange={(event) => setSemesterFilter(event.target.value)}
+                                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                                >
+                                                    <option value="todos">Todos</option>
+                                                    {semesterOptions.map((semesterValue) => (
+                                                        <option key={semesterValue} value={semesterValue}>
+                                                            {semesterValue}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                    Programa
+                                                </label>
+                                                <select
+                                                    value={programFilter}
+                                                    onChange={(event) => setProgramFilter(event.target.value)}
+                                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                                >
+                                                    <option value="todos">Todos</option>
+                                                    {programOptions.map((programValue) => (
+                                                        <option key={programValue} value={programValue}>
+                                                            {programValue}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {filteredRequests.length === 0 ? (
+                                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
+                                        <p className="text-sm font-medium text-slate-700">
+                                            No hay solicitudes para este filtro.
+                                        </p>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            Ajusta los filtros para ver más resultados.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                {filteredRequests.map((request) => {
                                     const isExpanded = expandedRequestId === request.id;
                                     return (
                                         <article
                                             key={request.id}
-                                            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                                            className={`
+                                                relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm
+                                                transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg
+                                                before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:rounded-l-2xl before:transition-all before:duration-200 hover:before:w-1.5
+                                                ${request.status === "pendiente" && "before:bg-amber-400"}
+                                                ${request.status === "rechazada" && "before:bg-orange-500"}
+                                                ${request.status === "aprobada" && "before:bg-emerald-500"}
+                                            `}
                                         >
-                                            {/* Resumen inicial de la solicitud */}
                                             <div className="flex items-start justify-between gap-4">
-                                                <div>
-                                                    <h3 className="text-base font-semibold text-slate-800">
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                        Solicitud LMS
+                                                    </p>
+                                                    <h3 className="mt-1 text-lg font-semibold leading-tight text-slate-900">
                                                         {request.subject}
                                                     </h3>
-
-                                                    <p className="mt-1 text-xs text-slate-400">
-                                                        Creada: {new Date(request.createdAt).toLocaleString()}
-                                                    </p>
                                                 </div>
 
-                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}>
+                                                <span className={`shrink-0 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}>
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {statusLabel[request.status]}
                                                 </span>
                                             </div>
 
-                                            {/* Botón para desplegar información */}
-                                            <div className="mt-4 flex justify-end">
+                                            <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                                                    <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
+                                                        {request.level}
+                                                    </span>
+                                                    <span className="text-slate-300">•</span>
+                                                    <span>{request.program}</span>
+                                                    <span className="text-slate-300">•</span>
+                                                    <span>{request.semester}</span>
+                                                </div>
+
                                                 <button
                                                     type="button"
                                                     onClick={() =>
@@ -336,13 +460,11 @@ export function DriveSubmissionSection() {
                                                             currentId === request.id ? null : request.id
                                                         )
                                                     }
-                                                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+                                                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
                                                 >
-                                                    <span>{isExpanded ? "Ocultar información" : "Ver información"}</span>
-
+                                                    <span>{isExpanded ? "Ocultar detalles" : "Ver detalles"}</span>
                                                     <svg
-                                                        className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"
-                                                            }`}
+                                                        className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"}`}
                                                         fill="none"
                                                         stroke="currentColor"
                                                         strokeWidth="2"
@@ -353,58 +475,45 @@ export function DriveSubmissionSection() {
                                                 </button>
                                             </div>
 
-                                            {/* Información desplegada */}
-                                            {isExpanded && (
-                                                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                                            <div
+                                                className={`
+                                                    overflow-hidden transition-all duration-300 ease-out
+                                                    ${isExpanded ? "mt-5 max-h-[1000px] opacity-100" : "mt-0 max-h-0 opacity-0"}
+                                                `}
+                                            >
+                                                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
                                                     <div className="grid gap-3 md:grid-cols-2">
                                                         <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
                                                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                                Nivel/Tipo
+                                                                Drive
                                                             </p>
-                                                            <p className="mt-1 text-sm font-medium text-slate-700">
-                                                                {request.level}
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                                Programa
-                                                            </p>
-                                                            <p className="mt-1 text-sm font-medium text-slate-700">
-                                                                {request.program}
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                                Semestre
-                                                            </p>
-                                                            <p className="mt-1 text-sm font-medium text-slate-700">
-                                                                {request.semester}
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                                Material
-                                                            </p>
-
                                                             <a
                                                                 href={request.source}
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                                                             >
-                                                                Ver Google Drive
+                                                                Ver enlace
                                                                 <span aria-hidden="true">↗</span>
                                                             </a>
+                                                        </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                                Creación
+                                                            </p>
+                                                            <p className="mt-2 text-sm font-medium text-slate-700">
+                                                                {request.createdAt}
+                                                            </p>
+                                                            <p className="mt-1 text-xs text-slate-500">
+                                                                {request.createdByName ?? "GIF"} · {request.createdByRole}
+                                                            </p>
                                                         </div>
 
                                                         <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
                                                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                                                                 Descripción
                                                             </p>
-
                                                             <p className="mt-2 text-sm leading-relaxed text-slate-600">
                                                                 {request.summary}
                                                             </p>
@@ -419,8 +528,6 @@ export function DriveSubmissionSection() {
                                                             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
                                                                 Observaciones del coordinador
                                                             </p>
-
-                                                            {/* Muestra las observaciones guardadas, o un aviso si no hay */}
                                                             {request.adjustmentNotes ? (
                                                                 <p className="mt-1 text-sm leading-relaxed text-slate-700">
                                                                     {request.adjustmentNotes}
@@ -431,7 +538,6 @@ export function DriveSubmissionSection() {
                                                                 </p>
                                                             )}
 
-                                                            {/* Botón para que el GIF notifique que ya hizo las correcciones */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() =>
@@ -445,11 +551,30 @@ export function DriveSubmissionSection() {
                                                             </button>
                                                         </div>
                                                     )}
+
+                                                    {request.status === "aprobada" && request.approvalLink && (
+                                                        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                                                            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                                                Link de aprobación
+                                                            </p>
+                                                            <a
+                                                                href={request.approvalLink}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200"
+                                                            >
+                                                                Abrir link aprobado
+                                                                <span aria-hidden="true">↗</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
+                                            </div>
                                         </article>
                                     );
                                 })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

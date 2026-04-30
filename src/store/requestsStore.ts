@@ -164,6 +164,22 @@ export const useRequestsStore = create<RequestsState>()(
       name: "carga-lms-requests",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ requests: state.requests }),
+      // Migración automática: normaliza datos persistidos en localStorage.
+      // Si existen solicitudes con el estado antiguo "en_revision", se convierten
+      // a "pendiente" para mantener consistencia con el sistema de estados actual.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const hasLegacyStatus = state.requests.some(
+          (r) => (r.status as string) === "en_revision",
+        );
+        if (hasLegacyStatus) {
+          state.requests = state.requests.map((r) =>
+            (r.status as string) === "en_revision"
+              ? { ...r, status: "pendiente" }
+              : r,
+          );
+        }
+      },
     },
   ),
 );

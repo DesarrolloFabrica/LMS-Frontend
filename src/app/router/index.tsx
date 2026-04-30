@@ -3,7 +3,6 @@ import { MainLayout } from "@/app/layouts/MainLayout";
 import { AuthLayout } from "@/app/layouts/AuthLayout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { PipelinePage } from "@/pages/PipelinePage";
 import { NewSubmissionPage } from "@/pages/NewSubmissionPage";
 import { ReviewPage } from "@/pages/ReviewPage";
 import { ReviewDetailPage } from "@/pages/ReviewDetailPage";
@@ -15,7 +14,6 @@ export const router = createBrowserRouter([
   { path: "/", element: <MainLayout />, children: [
     { index: true, element: <Navigate to="/dashboard" replace /> },
     { path: "dashboard", element: <DashboardPage /> },
-    { path: "pipeline", element: <PipelinePage /> },
     { path: "submissions/new", element: <NewSubmissionPage /> },
     { path: "review", element: <ReviewPage /> },
     { path: "review/:id", element: <ReviewDetailPage /> },
