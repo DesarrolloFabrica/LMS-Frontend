@@ -118,8 +118,7 @@ export interface ApiSubject {
 }
 
 export interface AuthSession {
-  accessToken: string;
-  tokenType: "Bearer";
+  tokenType: "Cookie";
   expiresIn: string;
   user: ApiUser;
 }

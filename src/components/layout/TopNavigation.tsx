@@ -7,6 +7,7 @@ import {
   DASHBOARD_SECTION_IDS,
   scrollToDashboardSection,
 } from "@/lib/dashboardSectionIds";
+import { authApi } from "@/lib/api";
 import { scaleTap } from "@/lib/animations";
 import { useAuthStore } from "@/store/authStore";
 import { useRequestsStore } from "@/store/requestsStore";
@@ -28,6 +29,7 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const clearSession = useAuthStore((state) => state.clearSession);
+  const user = useAuthStore((state) => state.user);
   const clearRequests = useRequestsStore((state) => state.clearRequests);
   const setUserRole = useUIStore((state) => state.setUserRole);
   const isDashboard = pathname === "/dashboard";
@@ -54,10 +56,12 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
   }, [setDashboardNavScrollActiveTo]);
 
   const handleLogout = () => {
-    clearSession();
-    clearRequests();
-    setUserRole("gif");
-    navigate("/login");
+    void authApi.logout().finally(() => {
+      clearSession();
+      clearRequests();
+      setUserRole("gif");
+      navigate("/login");
+    });
   };
 
   return (
@@ -129,13 +133,13 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
             )}
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span className="max-sm:hidden">Salir sesion</span>
+            <span className="max-sm:hidden">Salir sesión</span>
           </motion.button>
 
-          <motion.button
-            type="button"
+          <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={scaleTap}
+            title={user?.fullName ?? user?.email ?? "Usuario"}
             className={cn(
               "relative flex h-10 w-10 items-center justify-center rounded-xl font-bold transition-all duration-300",
               isGlass
@@ -143,12 +147,27 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
                 : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 hover:border-indigo-200 hover:shadow-md",
             )}
           >
-            <span className="text-[11px] tracking-tighter">LM</span>
+            <span className="absolute inset-0 overflow-hidden rounded-xl">
+              <span className="flex h-full w-full items-center justify-center text-[11px] tracking-tighter">
+                {getUserInitials(user?.fullName ?? user?.email)}
+              </span>
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName ? `Foto de ${user.fullName}` : "Foto de usuario"}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : null}
+            </span>
             <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
             </span>
-          </motion.button>
+          </motion.div>
         </div>
       </div>
 
@@ -157,4 +176,15 @@ export function TopNavigation({ variant = "solid" }: { variant?: TopNavigationVa
       ) : null}
     </header>
   );
+}
+
+function getUserInitials(value?: string | null) {
+  if (!value) return "US";
+
+  const [first = "", second = ""] = value
+    .replace(/@.*/, "")
+    .split(/\s|[._-]/)
+    .filter(Boolean);
+
+  return `${first.charAt(0)}${second.charAt(0)}`.toUpperCase() || "US";
 }

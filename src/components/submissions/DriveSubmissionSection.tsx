@@ -34,7 +34,7 @@ export function DriveSubmissionSection() {
     const isLoading = useRequestsStore((state) => state.isLoading);
     // Accion para que Fabrica notifique que corrigio una solicitud con ajustes.
     const notifyCorrectionsReady = useRequestsStore((state) => state.notifyCorrectionsReady);
-    const accessToken = useAuthStore((state) => state.accessToken);
+    const user = useAuthStore((state) => state.user);
     const { register, handleSubmit, reset } = useForm<SubmissionForm>({
         resolver: zodResolver(schema),
         defaultValues: { contentTypeCodes: [] },
@@ -65,16 +65,16 @@ export function DriveSubmissionSection() {
     const myRequests = requests.filter((request) => request.createdByRole === "gif");
 
     useEffect(() => {
-        if (!accessToken) return;
+        if (!user) return;
         void catalogsApi.contentTypes().then(setContentTypes).catch((error) => toast.error(readError(error)));
         void catalogsApi.semesters().then(setSemesters).catch((error) => toast.error(readError(error)));
         void catalogsApi.programs().then(setPrograms).catch((error) => toast.error(readError(error)));
-    }, [accessToken]);
+    }, [user]);
 
     useEffect(() => {
-        if (!accessToken) return;
+        if (!user) return;
         void loadMyRequests().catch((error) => toast.error(readError(error)));
-    }, [accessToken, loadMyRequests]);
+    }, [loadMyRequests, user]);
 
     const onSubmit = async (data: SubmissionForm) => {
         /**

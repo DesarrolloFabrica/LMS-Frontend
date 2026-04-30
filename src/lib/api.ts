@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/store/authStore";
+import { isSessionIdleExpired } from "@/lib/session";
 import type {
   ApiContentType,
   ApiProgram,
@@ -28,19 +29,22 @@ export class ApiError extends Error {
 }
 
 async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const token = useAuthStore.getState().accessToken;
+  const { clearSession, lastActivityAt, touchSession, user } = useAuthStore.getState();
   const headers = new Headers(options.headers);
+  const skipsIdleCheck = path === "/auth/google" || path === "/auth/logout";
+
+  if (user && !skipsIdleCheck && isSessionIdleExpired(lastActivityAt)) {
+    clearSession();
+    throw new ApiError("La sesión expiró por inactividad.", 401, null);
+  }
 
   if (options.body !== undefined) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
@@ -50,9 +54,13 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
 
   if (!response.ok) {
     if (response.status === 401) {
-      useAuthStore.getState().clearSession();
+      clearSession();
     }
     throw new ApiError(readApiMessage(payload), response.status, payload);
+  }
+
+  if (user && !skipsIdleCheck) {
+    touchSession();
   }
 
   return payload as T;
@@ -72,6 +80,10 @@ export const authApi = {
     apiRequest<AuthSession>("/auth/google", {
       method: "POST",
       body: { credential },
+    }),
+  logout: () =>
+    apiRequest<{ ok: true }>("/auth/logout", {
+      method: "POST",
     }),
   me: () => apiRequest<ApiUser>("/auth/me"),
 };
@@ -96,3 +108,4 @@ export const materiasApi = {
       body: payload,
     }),
 };
+

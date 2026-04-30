@@ -10,7 +10,7 @@ export function CoordinatorRequestsSection() {
   const loadCoordinatorRequests = useRequestsStore((state) => state.loadCoordinatorRequests);
   const approveRequest = useRequestsStore((state) => state.approveRequest);
   const rejectRequest = useRequestsStore((state) => state.rejectRequest);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "todas">("todas");
   const [showFilters, setShowFilters] = useState(false);
@@ -28,11 +28,11 @@ export function CoordinatorRequestsSection() {
   const [adjustmentError, setAdjustmentError] = useState("");
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!user) return;
     void loadCoordinatorRequests().catch((error) => toast.error(readError(error)));
     void catalogsApi.semesters().then(setSemesters).catch((error) => toast.error(readError(error)));
     void catalogsApi.programs().then(setPrograms).catch((error) => toast.error(readError(error)));
-  }, [accessToken, loadCoordinatorRequests]);
+  }, [loadCoordinatorRequests, user]);
 
 
   // Aplica los tres filtros al mismo tiempo:

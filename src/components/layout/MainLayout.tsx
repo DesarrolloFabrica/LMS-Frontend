@@ -8,20 +8,17 @@ export function MainLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const isDashboardHero = pathname === "/dashboard";
-  const accessToken = useAuthStore((state) => state.accessToken);
   const user = useAuthStore((state) => state.user);
   const setUserRole = useUIStore((state) => state.setUserRole);
 
   useEffect(() => {
-    if (!accessToken) {
+    if (!user) {
       navigate("/login", { replace: true });
       return;
     }
 
-    if (user) {
-      setUserRole(mapBackendRoleToUiRole(user.role));
-    }
-  }, [accessToken, navigate, setUserRole, user]);
+    setUserRole(mapBackendRoleToUiRole(user.role));
+  }, [navigate, setUserRole, user]);
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden bg-[#f1f5f9] text-slate-900">
