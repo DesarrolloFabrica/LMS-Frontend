@@ -4,7 +4,6 @@ import { MainContentContainer } from "@/components/layout/MainContentContainer";
 import { activityFeed } from "@/data/mockProcesses";
 import { ActivityFeedItem } from "@/components/shared/ActivityFeedItem";
 import { Card } from "@/components/ui/Card";
-import { motionDuration, motionEase } from "@/lib/animations";
 import { Activity, Zap, TrendingUp, Users, Terminal } from "lucide-react";
 import { cn } from "@/lib/cn";
 

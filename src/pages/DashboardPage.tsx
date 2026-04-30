@@ -40,13 +40,13 @@ export function DashboardPage() {
   );
   const dashboardRevealDuration = entrySession.fromAuth && entrySession.profile === "full" ? 1.05 : 0.26;
 
-  const activeQueue = processes.filter((p) => p.status !== "Completed");
-  const inReviewCount = processes.filter((p) => p.status === "In Review").length;
+  const activeQueue = processes.filter((p) => p.status !== "aprobado");
+  const pendingCount = processes.filter((p) => p.status === "pendiente").length;
   const userRole = useUIStore((state) => state.userRole);
   const statsLine =
     userRole === "coordinador"
-      ? `Panel de coordinación · ${activeQueue.length} procesos activos · ${inReviewCount} en revisión`
-      : `${activeQueue.length} Solicitudes activas · ${inReviewCount} en revisión · ${activityFeed.length} Pendientes de aprobación`;
+      ? `Panel de coordinación · ${activeQueue.length} procesos activos · ${pendingCount} pendientes`
+      : `${activeQueue.length} procesos activos · ${pendingCount} pendientes · ${activityFeed.length} eventos hoy`;
   useEffect(() => {
     const tick = () => {
       const el = heroDarkRef.current;

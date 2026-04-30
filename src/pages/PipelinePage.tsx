@@ -6,12 +6,12 @@ import { MainContentContainer } from "@/components/layout/MainContentContainer";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/shared/StatusPill";
 import { motionEase } from "@/lib/animations";
-import { PIPELINE_COLUMN_ACCENT, PRIORITY_STYLES } from "@/lib/constants";
+import { PIPELINE_COLUMN_ACCENT, PRIORITY_STYLES, REQUEST_STATUS_LABELS } from "@/lib/constants";
 import { processes } from "@/data/mockProcesses";
 import type { Status } from "@/types";
 import { cn } from "@/lib/cn";
 
-const columns: Status[] = ["Submitted", "In Review", "Requires Finalization", "Completed"];
+const columns: Status[] = ["pendiente", "requiere_ajustes", "aprobado"];
 
 /** Tarjeta de Pipeline con diseño de módulo técnico ligero */
 function PipelineCard({ item }: { item: (typeof processes)[0] }) {
@@ -120,7 +120,9 @@ export function PipelinePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-white shadow-lg bg-linear-to-br", accentClass)} />
-                    <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-slate-900">{column}</h2>
+                    <h2 className="text-[13px] font-black uppercase tracking-[0.2em] text-slate-900">
+                      {REQUEST_STATUS_LABELS[column]}
+                    </h2>
                   </div>
                   <span className="rounded-xl border border-white bg-white/60 px-2.5 py-1 font-mono text-[11px] font-bold text-slate-600 shadow-sm backdrop-blur-md">
                     {items.length}
