@@ -46,7 +46,7 @@ export function DashboardPage() {
   const statsLine =
     userRole === "coordinador"
       ? `Panel de coordinación · ${activeQueue.length} procesos activos · ${inReviewCount} en revisión`
-      : `${activeQueue.length} procesos activos · ${inReviewCount} en revisión · ${activityFeed.length} eventos hoy`;
+      : `${activeQueue.length} Solicitudes activas · ${inReviewCount} en revisión · ${activityFeed.length} Pendientes de aprobación`;
   useEffect(() => {
     const tick = () => {
       const el = heroDarkRef.current;

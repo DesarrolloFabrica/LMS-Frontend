@@ -44,32 +44,6 @@ function assignRef<T>(instanceRef: Ref<T> | undefined, node: T | null) {
 const HERO_VIDEO_SRC = "/videos/background.mp4";
 
 const FLOW_LEGEND: { title: string; description: string; icon: LucideIcon; featured?: boolean }[] = [
-  {
-    title: "Pipeline",
-    description: "Resumen de etapas y volumen de trabajo por fase.",
-    icon: GitBranch,
-    featured: true,
-  },
-  {
-    title: "Revisión editorial",
-    description: "Cola priorizada, QA y comentarios técnicos.",
-    icon: Sparkles,
-  },
-  {
-    title: "Altas de materia",
-    description: "Registro de entregas con trazabilidad total.",
-    icon: FilePlus,
-  },
-  {
-    title: "Actividad en vivo",
-    description: "Línea de tiempo de movimientos recientes.",
-    icon: Activity,
-  },
-  {
-    title: "Historial y cierres",
-    description: "Documentación lista para auditoría final.",
-    icon: History,
-  },
 ];
 
 export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(function DashboardHero(
@@ -180,7 +154,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
 
         <div className="relative z-10 mx-auto flex w-full max-w-[min(1280px,calc(100%-2rem))] flex-1 flex-col justify-center py-14 pb-28 pt-23 sm:pt-16 sm:pb-32 md:pb-36 md:pt-28 lg:pb-40">
           <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <div className="flex max-w-xl flex-col justify-center text-left">
+            <div className="mx-auto flex max-w-xl flex-col items-center justify-center text-center lg:mx-0 lg:items-start lg:text-left">
               <motion.div variants={staggerParent} initial="hidden" animate="visible" className="contents">
                 <motion.div
                   variants={itemVariant}
@@ -194,15 +168,15 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   variants={itemVariant}
                   className="mb-6 bg-linear-to-br from-white via-slate-200 to-blue-400 bg-clip-text text-4xl font-black leading-[1.05] tracking-tight text-transparent drop-shadow-lg sm:text-6xl md:text-[4rem]"
                 >
-                  Control académico <br className="hidden sm:block" />
-                  en un solo flujo
+                 Gestiona el checkout de <br className="hidden sm:block" />
+                  virtualización sin fricción
                 </motion.h1>
 
                 <motion.p
                   variants={itemVariant}
                   className="mb-6 max-w-lg text-base font-medium leading-relaxed text-slate-300 drop-shadow-md sm:text-xl"
                 >
-                  Orquesta entregas, revisiones y cierres con visibilidad total. Sistema de gestión unificada sin fricción.
+                  Centraliza solicitudes, revisiones y aprobaciones en un solo flujo operativo. Todo el proceso, en un mismo lugar.
                 </motion.p>
 
                 <motion.div variants={itemVariant} className="mb-10 flex items-center gap-4 text-xs font-bold tracking-widest text-blue-400/80">
@@ -210,7 +184,7 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                   {statsLine.toUpperCase()}
                 </motion.div>
 
-                <motion.div variants={itemVariant} className="flex flex-wrap gap-4">
+                <motion.div variants={itemVariant} className="flex flex-wrap justify-center gap-4 lg:justify-start">
                   <motion.button
                     type="button"
                     onClick={goFlow}
@@ -221,17 +195,6 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
                     <span className="relative z-10">Comenzar flujo</span>
                     <GitBranch className="relative z-10 h-4 w-4 transition-transform group-hover:rotate-12" />
                     <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-                  </motion.button>
-
-                  <motion.button
-                    type="button"
-                    onClick={goNav}
-                    className="group flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-8 text-[14px] font-bold text-white shadow-sm transition-all hover:bg-white/10 hover:border-white/20 backdrop-blur-md"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={scaleTap}
-                  >
-                    Ver pipeline
-                    <Activity className="h-4 w-4 text-blue-400" />
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -259,63 +222,6 @@ export const DashboardHero = forwardRef<HTMLElement, DashboardHeroProps>(functio
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-14 h-48 bg-linear-to-t from-slate-950 via-slate-950/80 to-transparent" />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center px-4 md:px-8">
-          <div className="pointer-events-auto w-full max-w-7xl">
-            <ul className="flex list-none flex-row gap-4 overflow-x-auto rounded-[2.5rem] border border-white/10 bg-slate-900/40 p-4 shadow-2xl backdrop-blur-3xl [&::-webkit-scrollbar]:hidden">
-              {FLOW_LEGEND.map((item, idx) => {
-                const Icon = item.icon;
-                return (
-                  <motion.li
-                    key={item.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + idx * 0.1 }}
-                    className={cn(
-                      "group relative flex min-w-64 flex-1 shrink-0 items-center gap-4 rounded-3xl border px-5 py-5 transition-all duration-500 sm:min-w-0",
-                      item.featured
-                        ? "border-blue-500/40 bg-blue-500/20 shadow-[0_10px_30px_-10px_rgba(59,130,246,0.3)]"
-                        : "border-white/5 bg-white/5 hover:border-white/10 hover:bg-white/10"
-                    )}
-                  >
-                    {/* Detalles decorativos de módulo */}
-                    <div className="absolute -left-px top-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="absolute -right-px bottom-4 h-4 w-[2px] bg-blue-500/50 opacity-0 transition-opacity group-hover:opacity-100" />
-
-                    <div className={cn(
-                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all duration-500",
-                      item.featured
-                        ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-                        : "bg-white/5 text-slate-400 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]"
-                    )}>
-                      <Icon className="h-5 w-5" strokeWidth={2.5} />
-                    </div>
-
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <p className={cn(
-                        "text-[14px] font-bold tracking-tight transition-colors duration-300",
-                        item.featured ? "text-white" : "text-slate-300 group-hover:text-white"
-                      )}>
-                        {item.title}
-                      </p>
-                      <p className="truncate text-[11px] font-medium text-slate-400 transition-colors group-hover:text-slate-300">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    {/* Efecto de escaneo hover */}
-                    <div className="absolute inset-0 h-full w-full overflow-hidden rounded-3xl opacity-0 group-hover:opacity-100 pointer-events-none">
-                      <motion.div
-                        className="absolute inset-y-0 w-px bg-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                        animate={{ left: ["0%", "100%"] }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                      />
-                    </div>
-                  </motion.li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
       </motion.section>
     </div>
   );

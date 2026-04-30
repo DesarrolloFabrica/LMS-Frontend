@@ -115,12 +115,7 @@ export function CoordinatorRequestsSection() {
     setAdjustmentError("");
   }
 
-  /**
-   * Abre el panel de aprobación en dos pasos.
-   * No cambia el estado hasta confirmar.
-   */
   function openApprovalBox(requestId: string) {
-    // Si se abre aprobación, se cierra el panel de "Solicitar ajustes".
     setAdjustmentBoxId(null);
     setAdjustmentNotes("");
     setAdjustmentError("");
@@ -129,12 +124,6 @@ export function CoordinatorRequestsSection() {
     setApprovalError("");
   }
 
-  /**
-   * Confirma la aprobación:
-   * - Valida que el link no esté vacío.
-   * - Aprueba y guarda approvalLink.
-   * - Cierra y limpia el panel.
-   */
   function confirmApproval(requestId: string) {
     const normalizedLink = approvalLink.trim();
     if (normalizedLink === "") {
@@ -174,22 +163,13 @@ export function CoordinatorRequestsSection() {
           </p>
 
         </div>
-
-
-
         {/* Lista real de solicitudes compartidas por Zustand entre GIF y Coordinador */}
-
         <div className="space-y-5">
-
           {filteredRequests.length === 0 ? (
-
             <p className="text-sm text-slate-500">
               No hay solicitudes para este filtro.
             </p>
-
           ) : (
-
-
             <div className="grid gap-4">
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
