@@ -21,7 +21,7 @@ interface RequestsState {
   loadMyRequests: () => Promise<void>;
   loadCoordinatorRequests: () => Promise<void>;
   createRequest: (input: CreateRequestInput) => Promise<void>;
-  approveRequest: (id: string) => Promise<void>;
+  approveRequest: (id: string, cdigitalUrl?: string) => Promise<void>;
   rejectRequest: (id: string, adjustmentNotes: string) => Promise<void>;
   notifyCorrectionsReady: (id: string) => Promise<void>;
   clearRequests: () => void;
@@ -47,7 +47,12 @@ const toRequest = (subject: ApiSubject): LmsRequest => {
     createdByName: subject.createdBy?.fullName,
     semester: subject.semester,
     program: subject.programName ?? "",
+    contentTypes: subject.contentTypes?.map((contentType) => ({
+      code: contentType.code,
+      name: contentType.name,
+    })) ?? [],
     adjustmentNotes,
+    approvalLink: subject.cdigitalUrl ?? undefined,
   };
 };
 
@@ -113,7 +118,7 @@ export const useRequestsStore = create<RequestsState>()(
           throw error;
         }
       },
-      approveRequest: async (id) => {
+      approveRequest: async (id, cdigitalUrl) => {
         const numericId = backendId(id);
         if (!numericId) {
           set((state) => ({
@@ -124,7 +129,7 @@ export const useRequestsStore = create<RequestsState>()(
           return;
         }
 
-        const subject = await materiasApi.updateStatus(numericId, { newStatus: "aprobado" });
+        const subject = await materiasApi.updateStatus(numericId, { newStatus: "aprobado", cdigitalUrl });
         set((state) => ({ requests: replaceRequest(state.requests, toRequest(subject)) }));
       },
       rejectRequest: async (id, adjustmentNotes) => {

@@ -152,8 +152,9 @@ export interface LmsRequest {
   createdByName?: string;
   semester: string;
   program: string;
+  contentTypes?: Pick<ApiContentType, "code" | "name">[];
   adjustmentNotes?: string;
-  /** Link final compartido al aprobar la solicitud. Solo presente cuando status === "aprobada". */
+  /** Link final compartido al aprobar la solicitud. Solo presente cuando status === "aprobado". */
   approvalLink?: string;
 }
 

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RevealOnScroll } from "@/components/common/RevealOnScroll";
+import { ContentTypePills } from "@/components/shared/ContentTypePills";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -27,7 +28,7 @@ const schema = z.object({
 type SubmissionForm = z.infer<typeof schema>;
 
 export function DriveSubmissionSection() {
-    type GifStatusFilter = "todas" | "pendiente" | "aprobada" | "rechazada";
+    type GifStatusFilter = RequestStatus | "todas";
     const [view, setView] = useState<"new" | "list">("new");
     const createRequest = useRequestsStore((state) => state.createRequest);
     const loadMyRequests = useRequestsStore((state) => state.loadMyRequests);
@@ -46,6 +47,10 @@ export function DriveSubmissionSection() {
     const [semesters, setSemesters] = useState<ApiSemester[]>([]);
     const [programs, setPrograms] = useState<ApiProgram[]>([]);
     const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<GifStatusFilter>("todas");
+    const [semesterFilter, setSemesterFilter] = useState("todos");
+    const [programFilter, setProgramFilter] = useState("todos");
 
     // Estilos visuales por estado (misma paleta que el panel de coordinador).
     // "requiere_ajustes" usa naranja porque representa ajustes pendientes, no un rechazo definitivo.
@@ -81,14 +86,14 @@ export function DriveSubmissionSection() {
     });
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || user.role !== "FABRICA") return;
         void catalogsApi.contentTypes().then(setContentTypes).catch((error) => toast.error(readError(error)));
         void catalogsApi.semesters().then(setSemesters).catch((error) => toast.error(readError(error)));
         void catalogsApi.programs().then(setPrograms).catch((error) => toast.error(readError(error)));
     }, [user]);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || user.role !== "FABRICA") return;
         void loadMyRequests().catch((error) => toast.error(readError(error)));
     }, [loadMyRequests, user]);
 
@@ -357,8 +362,8 @@ export function DriveSubmissionSection() {
                                                 >
                                                     <option value="todas">Todas</option>
                                                     <option value="pendiente">Pendiente</option>
-                                                    <option value="aprobada">Aprobada</option>
-                                                    <option value="rechazada">Requiere ajustes</option>
+                                                    <option value="aprobado">Aprobada</option>
+                                                    <option value="requiere_ajustes">Requiere ajustes</option>
                                                 </select>
                                             </div>
 
@@ -422,8 +427,8 @@ export function DriveSubmissionSection() {
                                                 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg
                                                 before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:rounded-l-2xl before:transition-all before:duration-200 hover:before:w-1.5
                                                 ${request.status === "pendiente" && "before:bg-amber-400"}
-                                                ${request.status === "rechazada" && "before:bg-orange-500"}
-                                                ${request.status === "aprobada" && "before:bg-emerald-500"}
+                                                ${request.status === "requiere_ajustes" && "before:bg-orange-500"}
+                                                ${request.status === "aprobado" && "before:bg-emerald-500"}
                                             `}
                                         >
                                             <div className="flex items-start justify-between gap-4">
@@ -478,7 +483,7 @@ export function DriveSubmissionSection() {
                                             <div
                                                 className={`
                                                     overflow-hidden transition-all duration-300 ease-out
-                                                    ${isExpanded ? "mt-5 max-h-[1000px] opacity-100" : "mt-0 max-h-0 opacity-0"}
+                                                    ${isExpanded ? "mt-5 max-h-[1400px] opacity-100" : "mt-0 max-h-0 opacity-0"}
                                                 `}
                                             >
                                                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
@@ -518,6 +523,10 @@ export function DriveSubmissionSection() {
                                                                 {request.summary}
                                                             </p>
                                                         </div>
+
+                                                        <div className="rounded-xl bg-white p-4 ring-1 ring-slate-200 md:col-span-2">
+                                                            <ContentTypePills items={request.contentTypes} />
+                                                        </div>
                                                     </div>
 
                                                     {/* Bloque de observaciones del coordinador:
@@ -552,7 +561,7 @@ export function DriveSubmissionSection() {
                                                         </div>
                                                     )}
 
-                                                    {request.status === "aprobada" && request.approvalLink && (
+                                                    {request.status === "aprobado" && request.approvalLink && (
                                                         <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
                                                             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                                                                 Link de aprobación

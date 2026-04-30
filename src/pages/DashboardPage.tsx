@@ -1,7 +1,7 @@
 ﻿import { motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CoordinatorRequestsSection } from "@/components/coordinator/CoordinatorRequestsSection";
+import { CoordinatorRequestsSection } from "@/components/coordinator/CoordinatorRequestSection";
 import { DashboardEntryTransition } from "@/components/dashboard/DashboardEntryTransition";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DriveSubmissionSection } from "@/components/submissions/DriveSubmissionSection";
@@ -12,6 +12,7 @@ import {
   dashboardSectionIdFromHash,
   scrollToDashboardSection,
 } from "@/lib/dashboardSectionIds";
+import { mapBackendRoleToUiRole, useAuthStore } from "@/store/authStore";
 import { activityFeed, processes } from "@/data/mockProcesses";
 import { useUIStore } from "@/store/uiStore";
 
@@ -23,6 +24,7 @@ export function DashboardPage() {
   const heroDarkRef = useRef<HTMLElement | null>(null);
   const setDashboardNavOverLight = useUIStore((s) => s.setDashboardNavOverLight);
   const setDashboardNavScrollActiveTo = useUIStore((s) => s.setDashboardNavScrollActiveTo);
+  const authUser = useAuthStore((state) => state.user);
   const navState = (location.state ?? null) as AuthNavigationState | null;
   /** Captura en el primer montaje: al limpiar `state` con `replace`, el perfil ya no debe cambiar a mitad de la animación. */
   const [entrySession] = useState<{ fromAuth: boolean; profile: AuthProfile }>(() => ({
@@ -42,7 +44,8 @@ export function DashboardPage() {
 
   const activeQueue = processes.filter((p) => p.status !== "aprobado");
   const pendingCount = processes.filter((p) => p.status === "pendiente").length;
-  const userRole = useUIStore((state) => state.userRole);
+  const fallbackUserRole = useUIStore((state) => state.userRole);
+  const userRole = authUser ? mapBackendRoleToUiRole(authUser.role) : fallbackUserRole;
   const statsLine =
     userRole === "coordinador"
       ? `Panel de coordinación · ${activeQueue.length} procesos activos · ${pendingCount} pendientes`

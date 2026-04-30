@@ -85,6 +85,10 @@ export const authApi = {
     apiRequest<{ ok: true }>("/auth/logout", {
       method: "POST",
     }),
+  refresh: () =>
+    apiRequest<AuthSession>("/auth/refresh", {
+      method: "POST",
+    }),
   me: () => apiRequest<ApiUser>("/auth/me"),
 };
 

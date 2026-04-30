@@ -14,7 +14,7 @@ export function useSessionBootstrap() {
     if (bootstrappedRef.current) return;
     bootstrappedRef.current = true;
 
-    const { clearSession, lastActivityAt, setUser, user } = useAuthStore.getState();
+    const { clearSession, lastActivityAt, setSession, user } = useAuthStore.getState();
 
     if (user && isSessionIdleExpired(lastActivityAt)) {
       clearSession();
@@ -23,10 +23,10 @@ export function useSessionBootstrap() {
     }
 
     void authApi
-      .me()
-      .then((currentUser) => {
-        setUser(currentUser);
-        setUserRole(mapBackendRoleToUiRole(currentUser.role));
+      .refresh()
+      .then((session) => {
+        setSession(session);
+        setUserRole(mapBackendRoleToUiRole(session.user.role));
       })
       .catch(() => {
         clearSession();
