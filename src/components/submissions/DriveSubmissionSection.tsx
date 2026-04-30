@@ -27,7 +27,7 @@ const schema = z.object({
 type SubmissionForm = z.infer<typeof schema>;
 
 export function DriveSubmissionSection() {
-    type GifStatusFilter = "pendiente" | "aprobada" | "rechazada";
+    type GifStatusFilter = "todas" | "pendiente" | "aprobada" | "rechazada";
     const [view, setView] = useState<"new" | "list">("new");
     const createRequest = useRequestsStore((state) => state.createRequest);
     const requests = useRequestsStore((state) => state.requests);
@@ -39,7 +39,7 @@ export function DriveSubmissionSection() {
     const [semester, setSemester] = useState("");
     const [program, setProgram] = useState("");
     const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
-    const [statusFilter, setStatusFilter] = useState<GifStatusFilter>("pendiente");
+    const [statusFilter, setStatusFilter] = useState<GifStatusFilter>("todas");
     const [semesterFilter, setSemesterFilter] = useState("todos");
     const [programFilter, setProgramFilter] = useState("todos");
     const [showFilters, setShowFilters] = useState(false);
@@ -65,7 +65,8 @@ export function DriveSubmissionSection() {
     const programOptions = Array.from(new Set(myRequests.map((request) => request.program))).sort();
 
     const filteredRequests = myRequests.filter((request) => {
-        const matchesStatus = request.status === statusFilter;
+        const matchesStatus =
+            statusFilter === "todas" || request.status === statusFilter;
 
         const matchesSemester =
             semesterFilter === "todos" || request.semester === semesterFilter;
@@ -332,6 +333,7 @@ export function DriveSubmissionSection() {
                                                     onChange={(event) => setStatusFilter(event.target.value as GifStatusFilter)}
                                                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
                                                 >
+                                                    <option value="todas">Todas</option>
                                                     <option value="pendiente">Pendiente</option>
                                                     <option value="aprobada">Aprobada</option>
                                                     <option value="rechazada">Requiere ajustes</option>
