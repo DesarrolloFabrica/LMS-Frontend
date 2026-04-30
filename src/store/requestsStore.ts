@@ -17,8 +17,8 @@ interface RequestsState {
   requests: LmsRequest[];
   /** Crea una nueva solicitud con estado inicial "pendiente". */
   createRequest: (input: CreateRequestInput) => void;
-  /** Marca una solicitud como "aprobada". */
-  approveRequest: (id: string) => void;
+  /** Marca una solicitud como "aprobada" y guarda el link de aprobación. */
+  approveRequest: (id: string, approvalLink: string) => void;
   /** Marca una solicitud como "rechazada" (requiere ajustes) y guarda las observaciones del coordinador. */
   rejectRequest: (id: string, adjustmentNotes: string) => void;
   /**
@@ -53,10 +53,10 @@ export const useRequestsStore = create<RequestsState>()(
             ...state.requests,
           ],
         })),
-      approveRequest: (id) =>
+      approveRequest: (id, approvalLink) =>
         set((state) => ({
           requests: state.requests.map((request) =>
-            request.id === id ? { ...request, status: "aprobada" } : request,
+            request.id === id ? { ...request, status: "aprobada", approvalLink } : request,
           ),
         })),
       // Guarda las observaciones junto al estado para que el GIF pueda ver qué debe corregir.

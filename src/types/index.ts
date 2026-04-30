@@ -64,6 +64,8 @@ export interface LmsRequest {
   program: string;
   /** Observaciones del coordinador al solicitar ajustes. Solo presente cuando status === "rechazada". */
   adjustmentNotes?: string;
+  /** Link final compartido al aprobar la solicitud. Solo presente cuando status === "aprobada". */
+  approvalLink?: string;
 }
 
 export interface UserProfile {

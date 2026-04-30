@@ -19,6 +19,13 @@ export function CoordinatorRequestsSection() {
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   // adjustmentError: mensaje de validación cuando el coordinador intenta confirmar sin texto.
   const [adjustmentError, setAdjustmentError] = useState("");
+  // --- Estado del panel de aprobación ---
+  // approvalBoxId: ID de la solicitud con panel de aprobación abierto.
+  const [approvalBoxId, setApprovalBoxId] = useState<string | null>(null);
+  // approvalLink: link obligatorio que se guarda al confirmar aprobación.
+  const [approvalLink, setApprovalLink] = useState("");
+  // approvalError: mensaje de validación cuando se confirma sin link.
+  const [approvalError, setApprovalError] = useState("");
 
 
   // Aplica los tres filtros al mismo tiempo:
@@ -62,6 +69,11 @@ export function CoordinatorRequestsSection() {
       setAdjustmentNotes("");
       setAdjustmentError("");
     }
+    if (approvalBoxId === id) {
+      setApprovalBoxId(null);
+      setApprovalLink("");
+      setApprovalError("");
+    }
   }
 
   /**
@@ -69,6 +81,10 @@ export function CoordinatorRequestsSection() {
    * No cambia el estado de la solicitud hasta que el coordinador confirme.
    */
   function openAdjustmentBox(requestId: string) {
+    // Si se abre "Solicitar ajustes", se cierra el panel de aprobación.
+    setApprovalBoxId(null);
+    setApprovalLink("");
+    setApprovalError("");
     setAdjustmentBoxId(requestId);
     setAdjustmentNotes("");
     setAdjustmentError("");
@@ -97,6 +113,38 @@ export function CoordinatorRequestsSection() {
     setAdjustmentBoxId(null);
     setAdjustmentNotes("");
     setAdjustmentError("");
+  }
+
+  /**
+   * Abre el panel de aprobación en dos pasos.
+   * No cambia el estado hasta confirmar.
+   */
+  function openApprovalBox(requestId: string) {
+    // Si se abre aprobación, se cierra el panel de "Solicitar ajustes".
+    setAdjustmentBoxId(null);
+    setAdjustmentNotes("");
+    setAdjustmentError("");
+    setApprovalBoxId(requestId);
+    setApprovalLink("");
+    setApprovalError("");
+  }
+
+  /**
+   * Confirma la aprobación:
+   * - Valida que el link no esté vacío.
+   * - Aprueba y guarda approvalLink.
+   * - Cierra y limpia el panel.
+   */
+  function confirmApproval(requestId: string) {
+    const normalizedLink = approvalLink.trim();
+    if (normalizedLink === "") {
+      setApprovalError("Debes pegar un link antes de confirmar la aprobación.");
+      return;
+    }
+    approveRequest(requestId, normalizedLink);
+    setApprovalBoxId(null);
+    setApprovalLink("");
+    setApprovalError("");
   }
 
   return (
@@ -390,7 +438,8 @@ export function CoordinatorRequestsSection() {
                         <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
                           <button
                             onClick={(event) => {
-                              event.stopPropagation(); approveRequest(request.id)
+                              event.stopPropagation();
+                              openApprovalBox(request.id);
                             }}
                             className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                           >
@@ -413,7 +462,10 @@ export function CoordinatorRequestsSection() {
                               Se muestra solo cuando el coordinador hace clic en "Solicitar ajustes".
                               El coordinador debe escribir observaciones antes de confirmar. */}
                         {adjustmentBoxId === request.id && (
-                          <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
+                          <div
+                            className="mt-4 rounded-2xl border border-orange-200 bg-orange-50/60 p-4"
+                            onClick={(event) => event.stopPropagation()}
+                          >
                             <p className="mb-2 text-sm font-semibold text-orange-800">
                               Observaciones para el GIF
                             </p>
@@ -459,6 +511,61 @@ export function CoordinatorRequestsSection() {
                                 className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-95"
                               >
                                 Confirmar ajustes
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {/* --- PANEL DE APROBACIÓN ---
+                              Se muestra al hacer clic en "Aprobar".
+                              Requiere link antes de confirmar. */}
+                        {approvalBoxId === request.id && (
+                          <div
+                            className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <p className="mb-2 text-sm font-semibold text-emerald-800">
+                              Confirmar aprobación
+                            </p>
+                            <p className="mb-3 text-xs text-emerald-700">
+                              Pega el link final para aprobar esta solicitud.
+                            </p>
+
+                            <input
+                              type="url"
+                              value={approvalLink}
+                              onChange={(event) => {
+                                setApprovalLink(event.target.value);
+                                if (approvalError) setApprovalError("");
+                              }}
+                              placeholder="https://..."
+                              className="w-full rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-300/40"
+                              required
+                            />
+
+                            {approvalError && (
+                              <p className="mt-2 text-xs font-medium text-red-600">
+                                {approvalError}
+                              </p>
+                            )}
+
+                            <div className="mt-3 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setApprovalBoxId(null);
+                                  setApprovalLink("");
+                                  setApprovalError("");
+                                }}
+                                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => confirmApproval(request.id)}
+                                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+                              >
+                                Confirmar aprobación
                               </button>
                             </div>
                           </div>
